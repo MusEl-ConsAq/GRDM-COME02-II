@@ -1,3 +1,1 @@
-# CONCLUSIONE
-
-Eppur si muove...
+# Conclusioni e sviluppi futuri
