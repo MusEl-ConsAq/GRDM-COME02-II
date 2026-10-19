@@ -150,6 +150,7 @@ $endif$
 % ============================================================================
 $if(tables)$
 \usepackage{longtable,booktabs,array}
+\newcounter{none} % richiesto da pandoc recente per tabelle senza didascalia
 $if(multirow)$
 \usepackage{multirow}
 $endif$
