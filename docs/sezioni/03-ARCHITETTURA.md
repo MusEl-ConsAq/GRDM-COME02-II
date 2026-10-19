@@ -1,10 +1,10 @@
 # Architettura di Python Granular Engine
 
-Python Granular Engine (d'ora in avanti PGE) è uno strumento per la composizione con la sintesi granulare del suono campionato. Il compositore non scrive codice: descrive in un file YAML uno o più *stream* granulari, e il sistema ne ricava un file audio e una partitura grafica. La versione descritta in questa tesina è la 9.1.0 [@DeMattia2026Pge]. Il sistema è stato presentato al XXV Colloquio di Informatica Musicale [@DeMattia2026Cim], e questa tesina ne riprende l'impostazione ampliandola.
+Python Granular Engine (d'ora in avanti PGE) è uno strumento per la composizione con la sintesi granulare del suono campionato. Il compositore non scrive codice: descrive in un file YAML uno o più *stream* granulari, e il sistema ne ricava un file audio e una MAP (*Multiparametric Audio Plot*), una mappa sinottica dei grani. Il dominio è il *granular sampling* [@Lippe1993cim]: popolazioni di grani estratte da un materiale registrato, su una griglia temporale sincrona, quasi-sincrona o asincrona [@Roads2001, p. 93], con la posizione di lettura nel materiale come parametro di prima classe. L'ambiente è pensato come via d'accesso al vocabolario classico di Roads e Truax. La versione descritta in questa tesina è la 9.1.0 [@DeMattia2026Pge]. Il sistema è stato presentato al XXV Colloquio di Informatica Musicale [@DeMattia2026Cim], e questa tesina ne riprende l'impostazione ampliandola.
 
-Questo capitolo mostra come il sistema è costruito e perché è costruito così. Il linguaggio YAML, il grano, le voci e i renderer sono trattati nei capitoli successivi; qui interessa il disegno d'insieme e le scelte che lo tengono in piedi. Sono quattro. Chi decide *che cosa* suonare non sa *come* un programma di sintesi lo scrive. Il motore è usabile sia da riga di comando sia come libreria. Aggiungere un renderer, una finestra o una strategia non richiede di modificare il nucleo. Le composizioni sono riproducibili.
+Questo capitolo mostra come il sistema è costruito e perché è costruito così. Il linguaggio YAML, il grano, le voci e i renderer sono trattati nei capitoli successivi; qui interessa il disegno d'insieme e le scelte che lo tengono in piedi. Sono cinque. La generazione dei grani e il loro rendering sono due fasi separate, collegate da una lista di grani che fa da rappresentazione intermedia. Chi decide *che cosa* suonare non sa *come* un programma di sintesi lo scrive. Il motore è usabile sia da riga di comando sia come libreria. Aggiungere un renderer, una finestra o una strategia non richiede di modificare il nucleo. Le composizioni sono riproducibili.
 
-Il pacchetto `pge` conta circa 26 000 righe di Python, divise in nove sotto-pacchetti, ed è accompagnato da più di 160 file di test.
+Il pacchetto `pge` conta circa 26 000 righe di Python, divise in nove sotto-pacchetti, ed è accompagnato da più di 160 file di test. Si installa come pacchetto Python (versioni da 3.9 a 3.14). Il renderer NumPy richiede soltanto NumPy e `soundfile`, la MAP richiede matplotlib, e Csound o SuperCollider servono soltanto ai rispettivi renderer.
 
 <!-- DA INSERIRE: schema della pipeline come figura (docs/images/pipeline.png) -->
 
@@ -24,10 +24,11 @@ configs/brano.yml
       v
   Grain (liste di grani, una per voce)
       |
-      v
-  RenderingEngine --> AudioRenderer --> output/brano.aif
-                           |
-                           +--> Csound | NumPy | SuperCollider
+      +--> RenderingEngine --> AudioRenderer --> output/brano.aif
+      |                             |
+      |                             +--> NumPy | Csound | SuperCollider
+      +--> esportazioni: Reaper (.rpp), Sonic Visualiser (.sv), JSON
+      +--> MAP (Multiparametric Audio Plot)
 ```
 
 **Il `Generator`** (`engine/generator.py`) è l'orchestratore. Legge il file YAML, risolve gli stream importati da altri file con la chiave `file:`, valuta le espressioni matematiche scritte nei valori (per esempio `(pi)` o `(10/3)`), applica la regola solo/mute e crea un oggetto `Stream` per ogni stream rimasto. Se il brano dichiara un seme casuale, o se ne viene fissato uno per la sessione, il `Generator` lo propaga a tutti i componenti stocastici.
@@ -40,7 +41,9 @@ La ragione della pigrizia è pratica. Quando il sistema lavora per stem con la c
 
 **Il `Grain`** (`core/grain.py`) è il dato. È un oggetto immutabile con otto campi: istante di inizio, durata, posizione del puntatore nel campione, rapporto di altezza, volume, pan, numero della tabella del campione e numero della tabella della finestra. È dichiarato come `dataclass` congelata con `__slots__`, perché una composizione di durata considerevole produce un numero molto alto di grani e la memoria conta. L'immutabilità serve anche a un'altra cosa: un grano, una volta creato, può passare tra processi diversi senza che nessuno lo alteri.
 
-**Il `RenderingEngine`** (`rendering/`) riceve la lista degli stream e un renderer e produce i file. Lo fa senza sapere se il renderer sia Csound, NumPy o SuperCollider: è il tema dell'ultima sezione di questo capitolo.
+La lista dei grani è la rappresentazione intermedia del sistema, ed è agnostica rispetto a chi la consuma. Ogni grano porta tutti i propri parametri. Il verso di lettura non ha un campo proprio: è il segno del rapporto di altezza, e un rapporto negativo vale una lettura all'indietro. Da questo punto il motore non legge più lo YAML. La stessa lista alimenta i tre renderer audio, tre esportazioni (un progetto Reaper che dispone gli stream come file audio separati su tracce diverse, nel rispetto dell'onset di ciascuno; una sessione Sonic Visualiser; un file JSON) e la MAP. In termini di Seeger [@Seeger1958] lo YAML è una notazione prescrittiva, un'istruzione data al motore prima del rendering. La MAP è una notazione descrittiva: documenta ciò che è stato effettivamente generato e non viene riletta come input.
+
+**Il `RenderingEngine`** (`rendering/`) riceve la lista degli stream e un renderer e produce i file. Lo fa senza sapere se il renderer sia Csound, NumPy o SuperCollider: è il tema dell'ultima sezione di questo capitolo. Il motore di sintesi interno è NumPy, che non richiede programmi esterni. Csound e SuperCollider sono renderer esterni, a cui due traduttori consegnano la stessa lista di grani nel formato che ciascuno consuma: una event list `.sco` per un'orchestra Csound, uno score `.osc` per il server SuperCollider in tempo differito.
 
 ## Organizzazione dei moduli
 
@@ -54,15 +57,15 @@ I nove sotto-pacchetti di `pge` seguono la pipeline. La tabella riassume il ruol
 | `envelopes` | Gli inviluppi che fanno variare un parametro nel tempo: interpolazioni, segmenti, distribuzione dei punti |
 | `controllers` | Densità, altezza, puntatore, finestra e gestione delle voci |
 | `strategies` | Le strategie intercambiabili: distribuzione di altezza, onset, puntatore e pan sulle voci, variazione stocastica, clip del grano |
-| `rendering` | I renderer, i traduttori verso i linguaggi dei sintetizzatori, la cache, la partitura grafica |
+| `rendering` | I renderer, i traduttori verso i linguaggi dei sintetizzatori, la cache, la MAP |
 | `export` | Esportazione verso Reaper, Sonic Visualiser e file JSON dei grani |
 | `shared` | Ciò che serve a tutti: errori, logger, gestione del seme, utilità |
 
-Il pacchetto `rendering` è di gran lunga il più ampio, con 32 moduli, perché ospita i tre renderer e tutto ciò che sta intorno: la tabella dei campioni, la scrittura delle partiture, la cache incrementale e il visualizzatore.
+Il pacchetto `rendering` è di gran lunga il più ampio, con 32 moduli, perché ospita i tre renderer e tutto ciò che sta intorno: la tabella dei campioni, la scrittura degli score, la cache incrementale e il visualizzatore.
 
-La dipendenza tra i pacchetti va in una sola direzione. `core` e `controllers` descrivono che cosa suonare e non conoscono alcun programma di sintesi. `rendering` conosce tutto ciò che sta sopra e traduce un grano nel linguaggio del renderer scelto. Questa regola non è soltanto una convenzione: un test legge il codice sorgente come albero sintattico e fallisce se in `Grain`, `FtableManager` o nel catalogo delle finestre compare un letterale che apre una riga di partitura Csound. La regola è quindi imposta dai test.
+La dipendenza tra i pacchetti va in una sola direzione. `core` e `controllers` descrivono che cosa suonare e non conoscono alcun programma di sintesi. `rendering` conosce tutto ciò che sta sopra e traduce un grano nel linguaggio del renderer scelto. Questa regola non è soltanto una convenzione: un test legge il codice sorgente come albero sintattico e fallisce se in `Grain`, `FtableManager` o nel catalogo delle finestre compare un letterale che apre una riga di score Csound. La regola è quindi imposta dai test.
 
-La storia di questa regola spiega perché esista. In origine un `Grain` sapeva scrivere la propria riga di partitura Csound, e la precisione a otto decimali dell'onset, necessaria perché a 96 kHz un grano può durare un solo campione, era una decisione sul formato di Csound presa dentro il dato. Un secondo renderer testuale non avrebbe avuto altro posto in cui mettere il proprio metodo che accanto al primo. Oggi tutta la sintassi di Csound sta in un unico modulo, `CsoundEmitter`, e `Grain` è soltanto il dato.
+La storia di questa regola spiega perché esista. In origine un `Grain` sapeva scrivere la propria riga di score Csound, e la precisione a otto decimali dell'onset, necessaria perché a 96 kHz un grano può durare un solo campione, era una decisione sul formato di Csound presa dentro il dato. Un secondo renderer testuale non avrebbe avuto altro posto in cui mettere il proprio metodo che accanto al primo. Oggi tutta la sintassi di Csound sta in un unico modulo, `CsoundEmitter`, e `Grain` è soltanto il dato.
 
 ## Libreria e interfaccia a riga di comando
 
@@ -107,7 +110,7 @@ Il renderer da usare si sceglie in un unico punto, una fabbrica, e l'elenco dei 
 
 ### La sintassi di un renderer sta in un posto solo
 
-Un renderer testuale ha bisogno di un secondo confine, più in basso: chi scrive la sintassi. Per Csound lo fa `CsoundEmitter`, l'unico modulo che scrive righe di partitura. Gli altri moduli decidono l'ordine delle sezioni del file, ma non scrivono una sola riga della sintassi del renderer.
+Un renderer testuale ha bisogno di un secondo confine, più in basso: chi scrive la sintassi. Per Csound lo fa `CsoundEmitter`, l'unico modulo che scrive righe di score. Gli altri moduli decidono l'ordine delle sezioni del file, ma non scrivono una sola riga della sintassi del renderer.
 
 Lo stesso criterio vale per le finestre del grano. Il catalogo descrive una finestra *nei suoi termini*: la forma, i coefficienti, i parametri, la simmetria. Non nomina nessuna routine Csound e nessuna funzione NumPy. Due traduttori ne ricavano la materializzazione, uno per Csound (che produce una tabella con una routine GEN) e uno per NumPy (che produce un array).
 
@@ -139,7 +142,7 @@ Gli errori seguono la stessa logica. Derivano tutti da una radice comune, `Engin
 
 ## Riproducibilità e verifica
 
-Una composizione generata con elementi casuali ha senso solo se può essere riprodotta. PGE tratta la riproducibilità come un requisito di progetto. Il seme è un parametro del brano; ogni componente stocastico riceve un proprio generatore, derivato dal seme, e uno stream può condividere la sequenza con un altro dichiarando un gruppo comune. A parità di seme e di configurazione, lo stesso YAML produce lo stesso comportamento musicale da ciascun renderer. Il risultato non è identico campione per campione tra Csound e NumPy, perché i due renderer estraggono sequenze casuali indipendenti per i grani stocastici, ma densità, dispersione, traiettoria e distribuzione delle voci coincidono.
+Una composizione generata con elementi casuali ha senso solo se può essere riprodotta. PGE tratta la riproducibilità come un requisito di progetto. La specifica con il seme dichiarato è il documento che si versiona e si invia a chi deve leggerla: il rendering si rigenera da essa, e non occorre archiviarlo. Il seme è un parametro del brano; ogni componente stocastico riceve un proprio generatore, derivato dal seme, e uno stream può condividere la sequenza con un altro dichiarando un gruppo comune. A parità di seme e di configurazione, lo stesso YAML produce lo stesso comportamento musicale da ciascun renderer. Il risultato non è identico campione per campione tra Csound e NumPy, perché i due renderer estraggono sequenze casuali indipendenti per i grani stocastici, ma densità, dispersione, traiettoria e distribuzione delle voci coincidono.
 
 Anche il parallelismo del renderer NumPy è subordinato a questo requisito. La *generazione* dei grani, che consuma il generatore casuale, resta in un unico processo, nell'ordine storico. Si parallelizza solo il rendering, cioè la somma dei grani nel buffer di uscita, che è un'operazione senza stato. Con un processo il risultato coincide bit a bit con quello storico; in modalità stems, anche con più processi, ogni stem è identico a quello ottenuto con un processo solo.
 

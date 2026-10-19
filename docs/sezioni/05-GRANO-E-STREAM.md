@@ -1,6 +1,6 @@
 # Il grano e lo stream
 
-Il capitolo precedente ha descritto il linguaggio con cui si dichiara uno stream. Questo descrive che cosa quel linguaggio governa: il grano, la sua durata e la sua forma, la regola con cui i grani si susseguono nel tempo, il punto del materiale da cui sono letti, la loro altezza e la parte che il caso ha nella loro distribuzione. L'ordine è quello dell'esposizione per scostamenti del paper presentato al XXV CIM [@DeMattia2026Cim]: i parametri vengono introdotti uno alla volta, e per ciascuno si mostra la partitura grafica di un esempio che lo isola. I listati degli esempi stanno nella cartella `esempi/` del repository della tesina, e le partiture si rigenerano da quei file.
+Il capitolo precedente ha descritto il linguaggio con cui si dichiara uno stream. Questo descrive che cosa quel linguaggio governa: il grano, la sua durata e la sua forma, la regola con cui i grani si susseguono nel tempo, il punto del materiale da cui sono letti, la loro altezza e la parte che il caso ha nella loro distribuzione. L'ordine è quello dell'esposizione per scostamenti del paper presentato al XXV CIM [@DeMattia2026Cim]: i parametri vengono introdotti uno alla volta, e per ciascuno si mostra la MAP di un esempio che lo isola. I listati degli esempi stanno nella cartella `esempi/` del repository della tesina, e le MAP si rigenerano da quei file.
 
 ## Il grano come dato immutabile
 
@@ -11,7 +11,7 @@ Il grano è l'oggetto che il motore produce e che i renderer consumano. Come si 
 | istante di inizio (*onset*) | densità e distribuzione, nelle sezioni seguenti |
 | durata | `grain.duration` |
 | posizione di lettura | blocco `pointer` |
-| rapporto di altezza | blocco `pitch` |
+| rapporto di altezza (il suo segno porta il verso di lettura) | blocco `pitch` e `grain.read_direction` |
 | volume | `volume`, in decibel |
 | pan | `pan`, in gradi |
 | tabella del campione | `sample` |
