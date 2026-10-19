@@ -1,0 +1,36 @@
+# voices_chords -- progressione d'accordi sulle voci, su lettura ferma.
+# Variabile isolata: voices.pitch con strategy chord_progression (maj7 -> min7 -> dom7),
+# con il moto di radice (0, +5, -2 semitoni) sull'envelope `pitch` dello stream.
+composition:
+  title: "voices_chords"
+
+streams:
+  - stream_id: voices_chords
+    sample: voice.wav
+    duration: 9.0
+    time_mode: normalized
+    density: 20
+    grain:
+      duration: 0.06
+    pointer:
+      loop_unit: normalized
+      start: 0.5
+      speed_ratio: 0.0
+    pitch:
+      semitones: {type: step, points: [[0, 0], [0.34, 5], [0.67, -2]]}
+    voices:
+      num_voices: 4
+      pitch:
+        strategy: chord_progression
+        progression:
+          - [0, maj7]
+          - [0.34, min7]
+          - [0.67, dom7]
+        interp: step
+        voice_leading: nearest
+      pointer:
+        strategy: linear
+        step: 0.08
+        normalized: true
+
+seed: 2026

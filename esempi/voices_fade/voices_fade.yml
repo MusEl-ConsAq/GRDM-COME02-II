@@ -1,0 +1,28 @@
+# voices_fade -- numero di voci frazionario: la voce di confine sfuma, non scatta.
+# Variabile isolata: voices.num_voices come envelope lineare 1 -> 4 -> 2.5.
+composition:
+  title: "voices_fade"
+
+streams:
+  - stream_id: voices_fade
+    sample: voice.wav
+    duration: 9.0
+    time_mode: normalized
+    density: 20
+    grain:
+      duration: 0.06
+    pointer:
+      loop_unit: normalized
+      start: 0.5
+      speed_ratio: 0.0
+    voices:
+      num_voices: [[0, 1], [0.5, 4], [1, 2.5]]
+      pitch:
+        strategy: step
+        step: 5
+      pointer:
+        strategy: linear
+        step: 0.08
+        normalized: true
+
+seed: 2026

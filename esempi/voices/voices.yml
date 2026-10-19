@@ -1,0 +1,59 @@
+# =============================================================================
+# voices -- molteplicita' delle voci (esempio del paper CIM 2026, qui rinominato)
+#
+# Variabile isolata: il blocco `voices`.
+#   - num_voices: envelope 50 -> 7 -> 70
+#   - scatter:    0 -> 1 nella seconda meta' (da griglia condivisa a griglie
+#                 indipendenti), su una distribution che sale verso 1
+#   - pitch:      strategia step, 12 semitoni per voce (ottave)
+#   - pan:        strategia step, passo da 0 a 60 gradi
+#   - pointer:    strategia linear, 0.2 s per voce
+# Stocastico (distribution, scatter, deviation_probability): la realizzazione
+# e' quella fissata dal `seed` in fondo.
+# =============================================================================
+
+composition:
+  title: "voices"
+
+streams:
+  - stream_id: "dom9_spread"
+    duration: 40.0
+    sample: "voice.wav"
+    time_mode: normalized
+    density: [[.3,70],[.4,10],[.7,10],[1,14]]
+    distribution: [[[[0, 0.0], [50, .2], [100,0]], .4, 4], [.4,0],[.6,1]]  
+    grain:
+      duration: [[0,0.06],[.3,0.01],[.5,.1],[1,.04]]
+      duration_range:  {type: cubic, points: [[0.7, 0.0], [1, .02]]}
+    pointer:
+      speed_ratio: .01
+      start: .3
+      loop_unit: normalized
+      offset_range:  [[.8, 0.0], [1.0, .1]]
+    pitch:
+      cents: -3600
+    volume: [[0,-60],[.05,-12],[.9,-12],[.97,-7],[1,-40]]
+    volume_range: [[.6,3],[.9,9]]
+    pan_range: [[.4,0],[.5,30]]
+    deviation_probability: 
+      volume: 30
+    voices:
+      num_voices: [[0,50],[.3,7],[.8,7],[1,70]]
+      scatter:  {type: cubic, points: [[0.6, 0.0], [0.85, 1.0]]}
+      pitch:
+        strategy: step
+        step: 12 #[[0,1000],[.3,30],[1,3600]]
+      #  unit: cents
+      pan:
+        strategy: step
+        step: 
+          points: [[.6,0],[.9,60.0]] 
+          time_mode: normalized        
+      pointer:
+        strategy: linear
+        step: .2
+
+# Seed di riproducibilita' (PGE v8.0.0, issue #154): la derivazione degli
+# RNG e' sha256 su (seed, stream_id, componente), indipendente da
+# PYTHONHASHSEED. Con questa chiave la realizzazione e' quella stampata.
+seed: 2026
