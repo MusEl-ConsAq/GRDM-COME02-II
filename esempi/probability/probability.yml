@@ -1,0 +1,30 @@
+# =============================================================================
+# 
+#
+# Parametro mostrato:  deviation_probability 0 -> 100 nel tempo (probabilita' di applicare i _range)
+# Andamento atteso:    banda di lettura pulita (t=0) -> nuvola che si allarga (t=20)
+# Riproducibilita':     NON bit-identico (il gate stocastico non e' seminato).
+#                      L'ANDAMENTO e' invariante: stessa apertura della nuvola a ogni run.
+#
+# Lettura: a t=0 nessun grano riceve la deviazione -> tutti leggono la stessa posizione,
+# stesso pan, stesso pitch (banda netta). A t=20 il 100% dei grani riceve i _range
+# -> la posizione di lettura si disperde (offset_range), il pan si apre (pan_range),
+# il pitch si sparge (pitch range): la banda diventa nuvola.
+# =============================================================================
+
+composition:
+  title: probability
+
+streams:
+  - stream_id: probability_ramp
+    duration: 10.0
+    sample: voice.wav
+    time_mode: normalized
+    grain:
+      duration: 0.02
+    deviation_probability: {points: [[0, 0], [.2, 25], [.4, 50], [.6, 75], [.8, 100]], type: step}
+
+# Seed di riproducibilita' (PGE v8.0.0, issue #154): la derivazione degli
+# RNG e' sha256 su (seed, stream_id, componente), indipendente da
+# PYTHONHASHSEED. Con questa chiave la realizzazione e' quella stampata.
+seed: 2026

@@ -1,0 +1,18 @@
+# read_direction -- il verso di lettura del grano, indipendente da quello della testina.
+# Variabile isolata: grain.read_direction (+1 / -1 a gradini) con speed_ratio costante.
+composition:
+  title: "read_direction"
+
+streams:
+  - stream_id: read_direction
+    sample: voice.wav
+    duration: 8.0
+    time_mode: normalized
+    density: 6
+    grain:
+      duration: 0.12
+      read_direction: [[0, 1], [0.5, -1], [0.75, 1]]
+    pointer:
+      speed_ratio: 0.25
+
+seed: 2026

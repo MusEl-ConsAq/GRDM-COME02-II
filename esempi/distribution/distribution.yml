@@ -1,0 +1,47 @@
+composition:
+  title: "distribution"
+
+streams:
+  - stream_id: "sync"
+    duration: 5.0
+    sample: "voice.wav"
+    time_mode: normalized
+    # [...]
+    density: {type: cubic, points: [[0, 10], [1,200]]}
+    pointer:
+      speed_ratio: 0.0
+      start: 0.5
+      loop_unit: normalized
+
+  - stream_id: "sync_to_async"
+    onset: 5.0
+    duration: 5.0
+    sample: "voice.wav"
+    time_mode: normalized
+    # [...]
+    density: {type: cubic, points: [[0, 10], [1, 200]]}
+    pointer:
+      speed_ratio: 0.0
+      start: 0.5
+      loop_unit: normalized
+    # Da sincrono a asincrono.
+    distribution: {type: cubic, points: [[0, 0], [1, 1]]}
+
+  - stream_id: "sync_to_async"
+    solo:
+    duration: 20 #10.0
+    sample: "voice.wav"
+    time_mode: normalized
+    # [...]
+    density: {type: cubic, points: [[0,10], [0.5, 200], [1, 10]]}
+    pointer:
+      speed_ratio: 0.0
+      start: 0.5
+      loop_unit: normalized
+    # Da sincrono a asincrono.
+    distribution: {type: cubic, points: [[0.3, 0], [.75,1], [1, 0]]}
+
+# Seed di riproducibilita' (PGE v8.0.0, issue #154): la derivazione degli
+# RNG e' sha256 su (seed, stream_id, componente), indipendente da
+# PYTHONHASHSEED. Con questa chiave la realizzazione e' quella stampata.
+seed: 2026

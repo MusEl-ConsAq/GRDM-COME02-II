@@ -1,0 +1,22 @@
+streams:
+  - stream_id: grain_duration
+    duration: 10.0
+    sample: voice.wav
+    time_mode: normalized
+    pointer:
+      start: .3
+      loop_unit: normalized
+      speed_ratio: .03
+    volume: [[.5,-3],[.9,-12],[1,-60]]
+    distribution: [[.5,1],[.8,0],[1,1]]
+    density: [[.5,300],[.8,80],[1,3000]]
+    grain:
+      duration: [[0,.05],[.5,0.001],[1,.15]]
+    pan: {type: 'cubic', points: [[0,0],[.3,45],[.5,45],[.6,-60],[.65,-60],[.8,-150]]}
+    pan_range: [[.3,10],[.48,70],[.52,5], [.59,20],[.62,60],[.7,10], [.8,10],[1,180]] 
+    deviation_probability: {points: [[0, 100],[1,0] , [.2, 25], [.4, 50], [.6, 75], [.8, 100]], type: cubic}
+
+# Seed di riproducibilita' (PGE v8.0.0, issue #154): la derivazione degli
+# RNG e' sha256 su (seed, stream_id, componente), indipendente da
+# PYTHONHASHSEED. Con questa chiave la realizzazione e' quella stampata.
+seed: 2026

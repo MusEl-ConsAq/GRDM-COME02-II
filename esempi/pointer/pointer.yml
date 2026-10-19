@@ -1,0 +1,49 @@
+# =============================================================================
+# pointer -- Esempio del paper CIM 2026 (la posizione di lettura)
+#
+# Parametro mostrato:  pointer.speed_ratio 1 -> 0 (envelope).
+#                      UNICA deviazione dallo stream minimo (identita'):
+#                      nessun range, nessun deviation_probability, densita'/grano/finestra
+#                      ai default COLA.
+# Andamento atteso:    lettura naturale (copia fedele, come ex identita') che
+#                      decelera e si congela su una vocale tenuta.
+#                      In partitura: linea diagonale che si piega fino
+#                      all'orizzontale.
+# Evidenza:            INVISIBILE sulla waveform (l'inviluppo d'ampiezza resta
+#                      pieno e continuo) -> e' l'esempio che rende NECESSARIA
+#                      la partitura (asse Y = posizione di lettura nel buffer).
+# Riproducibilita':    BIT-IDENTICO. Nessun gate, nessun range,
+#                      distribution = 0 di default: rendering deterministico.
+#
+# Punto di congelamento:
+#   pos_freeze = duration * integrale(speed_ratio(u)) du
+#   con i valori sotto: 8 * (0.10 + (0.25 - 0.10)/2) = 8 * 0.175 = 1.4 s
+#   nel buffer. Se cade su consonante o silenzio, ritoccare plateau (0.10)
+#   e fine rampa (0.25) finche' il freeze si ferma su una vocale
+#   (verificare ascoltando E guardando la partitura: e' il workflow stesso).
+#
+# Nota audio (voluta): il freeze puro -- grani identici a IOT metronomico --
+# espone l'artefatto di periodicita' del granulatore (ronzio/pettine).
+# Non e' un difetto dell'esempio: e' la motivazione della sottosezione
+# successiva (deviazione per-grano: range e deviation_probability).
+# =============================================================================
+
+composition:
+  title: "pointer"
+
+streams:
+  - stream_id: pointer_freeze
+    sample: voice.wav
+    duration: 7.0
+    time_mode: normalized
+    pointer:
+      speed_ratio:
+        - [0.1, 1.0] 
+        - [0.15, 2.6] 
+        - [0.3, -0.3] 
+        - [0.5, 0.0]
+
+# Seed di riproducibilita' (PGE v8.0.0, issue #154): la derivazione degli
+# RNG e' sha256 su (seed, stream_id, componente), indipendente da
+# PYTHONHASHSEED. Con questa chiave la realizzazione e' quella stampata.
+seed: 2026

@@ -1,0 +1,74 @@
+# =============================================================================
+# deviation -- I due gemelli della deviazione per grano in UN solo YAML,
+#                   renderizzati come STEMS.
+#
+# I due stream condividono la stessa base (lettura congelata su un punto del
+# buffer, freeze a 0.5) e la stessa banda massima di deviazione (0.35): l'unica
+# differenza e' DOVE sta l'envelope.
+#
+#   mask_range   -- Gemello A: l'AMPIEZZA della deviazione.
+#                   pointer.offset_range 0 -> 0.35 (envelope), deviation_probability ASSENTE
+#                   -> gate "always", OGNI grano devia: cresce l'ampiezza.
+#                   Andamento: cuneo a riempimento uniforme, nessuna linea
+#                   centrale privilegiata.
+#
+#   mask_probability -- Gemello B: la PROBABILITA' della deviazione.
+#                   pointer.offset_range FISSO a 0.35 (= massimo del gemello A),
+#                   deviation_probability.pointer 0 -> 100 (envelope) -> cresce QUANTI grani
+#                   deviano, non quanto. Andamento: linea centrale che persiste
+#                   mentre una popolazione crescente la abbandona sull'intera
+#                   banda.
+#
+# Perche' un solo YAML + stems:
+#   - lo score_visualizer riceve entrambi gli stream e produce UNA sola map
+#     (due subplot impilati, stesso asse temporale 0-12s): si leggono i due
+#     andamenti affiancati nella stessa figura;
+#   - il rendering in modalita' STEMS produce DUE file audio distinti, uno per
+#     stream (deviation__mask_range.aif, deviation__mask_probability.aif),
+#     cosi' i due gemelli restano ascoltabili separatamente.
+#
+# Riproducibilita': NON bit-identico (campionamento uniforme / gate non
+#   seminati). L'andamento e' invariante: cuneo vs linea-che-si-spopola.
+#
+# Nota scoping (gemello B): il deviation_probability e' limitato alla chiave `pointer` per
+#   isolare la variabile. Un deviation_probability GLOBALE aprirebbe il gate anche sui
+#   parametri senza range esplicito, attivandone il jitter implicito di sistema
+#   (micromodulazione): concetto trattato a parte in exA_micro.
+# =============================================================================
+
+composition:
+  title: "deviation"
+
+streams:
+  # --- Gemello A: l'ampiezza della deviazione --------------------------------
+  # (a)
+  - stream_id: "mask_range"
+    duration: 12.0
+    sample: "voice.wav"
+    time_mode: normalized
+    # [...]
+    pointer:
+      start: 0.5
+      loop_unit: normalized
+      speed_ratio: 0.0
+      offset_range: [[0, 0.0], [1, 0.35]]
+
+  # --- Gemello B: la probabilita' della deviazione ---------------------------
+  # (b)
+  - stream_id: "mask_probability"
+    duration: 12.0
+    sample: "voice.wav"
+    time_mode: normalized
+    # [...]
+    deviation_probability:
+      pointer: [[0, 0], [1, 100]]
+    pointer:
+      start: 0.5
+      loop_unit: normalized
+      speed_ratio: 0.0
+      offset_range: 0.35
+
+# Seed di riproducibilita' (PGE v8.0.0, issue #154): la derivazione degli
+# RNG e' sha256 su (seed, stream_id, componente), indipendente da
+# PYTHONHASHSEED. Con questa chiave la realizzazione e' quella stampata.
+seed: 2026

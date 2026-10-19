@@ -1,0 +1,21 @@
+# loop -- il puntatore confinato in una finestra di loop mobile.
+# Variabile isolata: pointer.loop_start / loop_dur (envelope), con offset_range.
+composition:
+  title: "loop"
+
+streams:
+  - stream_id: loop
+    sample: voice.wav
+    duration: 10.0
+    time_mode: normalized
+    density: 80
+    grain:
+      duration: 0.03
+    pointer:
+      loop_unit: normalized
+      speed_ratio: 1.0
+      loop_start: [[0, 0.1], [1, 0.6]]
+      loop_dur: 0.2
+      offset_range: [[0, 0], [0.5, 0], [1, 0.5]]
+
+seed: 2026

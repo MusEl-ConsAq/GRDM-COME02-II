@@ -1,0 +1,22 @@
+# window -- la finestra del grano come envelope a stati: hanning -> rexpodec -> bartlett.
+# Variabile isolata: grain.envelope (modalita' multi-stato).
+composition:
+  title: "window"
+
+streams:
+  - stream_id: window
+    sample: voice.wav
+    duration: 6.0
+    time_mode: normalized
+    density: 12
+    grain:
+      duration: 0.08
+      envelope:
+        states: [[0, hanning], [0.5, rexpodec], [1, bartlett]]
+        curve: [[0, 0], [1, 1]]
+    pointer:
+      loop_unit: normalized
+      start: 0.5
+      speed_ratio: 0.0
+
+seed: 2026

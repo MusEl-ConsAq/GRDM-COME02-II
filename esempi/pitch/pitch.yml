@@ -1,0 +1,21 @@
+# pitch -- trasposizione a gradini su lettura ferma; il colore della MAP e' l'altezza.
+# Variabile isolata: pitch.semitones (envelope a gradini).
+composition:
+  title: "pitch"
+
+streams:
+  - stream_id: pitch
+    sample: voice.wav
+    duration: 8.0
+    time_mode: normalized
+    density: 40
+    grain:
+      duration: 0.05
+    pointer:
+      loop_unit: normalized
+      start: 0.5
+      speed_ratio: 0.0
+    pitch:
+      semitones: {type: step, points: [[0, 0], [0.25, 7], [0.5, -5], [0.75, 12]]}
+
+seed: 2026
