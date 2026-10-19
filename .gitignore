@@ -411,3 +411,9 @@ $RECYCLE.BIN/
 # Esempi: log del motore e audio renderizzato
 logs/
 esempi/**/*.aif
+
+# Build locale (Makefile)
+!Makefile
+/tesina.pdf
+/bibliography.yaml
+/styles/config_fonts.tex
