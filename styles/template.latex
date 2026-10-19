@@ -1,0 +1,432 @@
+% ============================================================================
+% TEMPLATE PANDOC UNIFICATO - Tesina Conservatorio
+% Integra tutte le configurazioni in un unico file
+% Motore: XeLaTeX
+% ============================================================================
+
+% --- Opzioni Hyperref ---
+\PassOptionsToPackage{unicode$for(hyperrefoptions)$,$hyperrefoptions$$endfor$}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+$if(colorlinks)$
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+$endif$
+
+% --- Document Class ---
+\documentclass[
+$if(fontsize)$
+  $fontsize$,
+$endif$
+$if(papersize)$
+  $papersize$paper,
+$endif$
+$for(classoption)$
+  $classoption$$sep$,
+$endfor$
+]{$documentclass$}
+
+% ============================================================================
+% GEOMETRIA PAGINA - Margini conservatorio
+% ============================================================================
+\usepackage[
+  a4paper, 
+  top=2.5cm, 
+  bottom=2.5cm, 
+  left=2cm, 
+  right=2cm
+]{geometry}
+
+% ============================================================================
+% FONT - Liberation Sans/Arial con logica condizionale
+% ============================================================================
+\usepackage{fontspec}
+\usepackage{etoolbox}
+
+% Importa configurazione font esterna
+\input{styles/config_fonts.tex}
+
+% Default font
+\newcommand{\defaultfont}{Liberation Sans}
+
+% Scelta font in base alla variabile \chosenfont
+\ifdefstring{\chosenfont}{arial}{
+    \setmainfont{Arial}
+    \setsansfont{Arial}
+    \setmonofont{Arial}
+}{
+    \setmainfont{\defaultfont}
+    \setsansfont{\defaultfont}
+    \setmonofont{Liberation Mono}
+}
+
+\renewcommand{\familydefault}{\sfdefault}
+
+% ============================================================================
+% INTERLINEA E PARAGRAFI
+% ============================================================================
+\usepackage{setspace}
+\setstretch{1.0}
+
+% Paragrafi: niente rientro, spazi tra accapi
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1\baselineskip}
+
+% ============================================================================
+% TITOLI SEZIONI - Formattazione conservatorio
+% ============================================================================
+\usepackage{styles/titlesec}
+
+% SEZIONI: 12pt bold UPPERCASE
+\titleformat{\section}
+  {\bfseries\fontsize{12}{14}\selectfont}
+  {\thesection}
+  {1em}
+  {\MakeUppercase}
+
+% SOTTOSEZIONI: 12pt italic bold
+\titleformat{\subsection}
+  {\itshape\bfseries\fontsize{12}{14}\selectfont}
+  {\thesubsection}
+  {1em}
+  {}
+
+% SOTTOSOTTOSEZIONI: 12pt italic
+\titleformat{\subsubsection}
+  {\itshape\fontsize{12}{14}\selectfont}
+  {\thesubsubsection}
+  {1em}
+  {}
+
+% Spaziatura titoli
+\titlespacing{\section}{0pt}{12pt plus 3pt minus 3pt}{6pt plus 2pt minus 2pt}
+\titlespacing{\subsection}{0pt}{10pt plus 2pt minus 2pt}{5pt plus 1pt minus 1pt}
+\titlespacing{\subsubsection}{0pt}{8pt plus 1pt minus 1pt}{4pt plus 1pt minus 1pt}
+
+% ============================================================================
+% HEADER/FOOTER - Solo numero pagina al centro
+% ============================================================================
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% ============================================================================
+% PACCHETTI BASE
+% ============================================================================
+\usepackage{amsmath,amssymb}
+
+% Miglioramenti tipografici
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{%
+  \usepackage[$for(microtypeoptions)$$microtypeoptions$$sep$,$endfor$]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath}
+}{}
+
+% ============================================================================
+% COLORI E HIGHLIGHTING
+% ============================================================================
+\usepackage{xcolor}
+
+$if(highlighting-macros)$
+$highlighting-macros$
+$endif$
+
+% Configurazione blocchi codice
+\usepackage{fvextra}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{
+  commandchars=\\\{\},
+  breaklines=true,
+  breakanywhere=true,
+  fontsize=\small,
+  frame=single,
+  framesep=6pt,
+  xleftmargin=1.5cm,
+  xrightmargin=0.5cm
+}
+
+% ============================================================================
+% TABELLE
+% ============================================================================
+$if(tables)$
+\usepackage{longtable,booktabs,array}
+$if(multirow)$
+\usepackage{multirow}
+$endif$
+\usepackage{calc}
+
+% Corregge ordine tabelle dopo \paragraph o \subparagraph
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+
+% Permette footnote in longtable
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+$endif$
+
+% Wrapfig per figure con testo avvolto
+\usepackage{styles/wrapfig}
+
+% ============================================================================
+% GRAFICA E FIGURE
+% ============================================================================
+$if(graphics)$
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+
+% Scala immagini se necessario
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+
+% Posizionamento figure di default
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+$endif$
+
+$if(svg)$
+\usepackage{svg}
+$endif$
+
+% Didascalie figure: font piccolo
+\usepackage{caption}
+\captionsetup{font=small, skip=10pt}
+
+$if(subfigure)$
+\usepackage{subcaption}
+$endif$
+
+% ============================================================================
+% CITAZIONI E BLOCKQUOTE
+% ============================================================================
+% Block quotes: font ridotto 11pt
+\AtBeginEnvironment{quote}{%
+  \fontsize{11}{13}\selectfont
+  \singlespacing
+}
+
+% ============================================================================
+% NOTE A PIÈ DI PAGINA
+% ============================================================================
+\renewcommand{\footnotesize}{\fontsize{10}{12}\selectfont}
+
+% ============================================================================
+% BIBLIOGRAFIA CSL
+% ============================================================================
+$if(csl-refs)$
+\NewDocumentCommand\citeproctext{}{}
+\NewDocumentCommand\citeproc{mm}{%
+  \begingroup\def\citeproctext{#2}\cite{#1}\endgroup}
+\makeatletter
+ \let\@cite@ofmt\@firstofone
+ \def\@biblabel#1{}
+ \def\@cite#1#2{{#1\if@tempswa , #2\fi}}
+\makeatother
+
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+
+% Font bibliografia: Arial 10pt
+\newcommand{\bibfont}{\sffamily\fontsize{10pt}{12pt}\selectfont}
+
+\newenvironment{CSLReferences}[2]
+{\begingroup\bibfont
+ \begin{list}{}{%
+  \setlength{\itemindent}{0pt}
+  \setlength{\leftmargin}{0pt}
+  \setlength{\parsep}{0pt}
+  \ifodd #1
+   \setlength{\leftmargin}{\cslhangindent}
+   \setlength{\itemindent}{-1\cslhangindent}
+  \fi
+  \setlength{\itemsep}{#2\baselineskip}}}
+ {\end{list}\endgroup}
+
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{\hfill\break\parbox[t]{\linewidth}{\strut\ignorespaces#1\strut}}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+$endif$
+
+% ============================================================================
+% LINGUA
+% ============================================================================
+$if(lang)$
+\usepackage[bidi=default]{babel}
+$if(babel-lang)$
+\babelprovide[main,import]{$babel-lang$}
+$endif$
+$for(babel-otherlangs)$
+\babelprovide[import]{$babel-otherlangs$}
+$endfor$
+\let\LanguageShortHands\languageshorthands
+\def\languageshorthands#1{}
+$endif$
+
+% ============================================================================
+% VARIE
+% ============================================================================
+\setlength{\emergencystretch}{3em}
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+$if(numbersections)$
+\setcounter{secnumdepth}{$if(secnumdepth)$$secnumdepth$$else$5$endif$}
+$else$
+\setcounter{secnumdepth}{-\maxdimen}
+$endif$
+
+% ============================================================================
+% HEADER INCLUDES (da YAML)
+% ============================================================================
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+% ============================================================================
+% CITAZIONI NOCITE
+% ============================================================================
+$if(nocite-ids)$
+\nocite{$for(nocite-ids)$$it$$sep$, $endfor$}
+$endif$
+
+% ============================================================================
+% HYPERREF E URL
+% ============================================================================
+$if(csquotes)$
+\usepackage{csquotes}
+$endif$
+
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{}
+\urlstyle{$if(urlstyle)$$urlstyle$$else$same$endif$}
+
+$if(links-as-notes)$
+\DeclareRobustCommand{\href}[2]{#2\footnote{\url{#1}}}
+$endif$
+
+\hypersetup{
+$if(title-meta)$
+  pdftitle={$title-meta$},
+$endif$
+$if(author-meta)$
+  pdfauthor={$author-meta$},
+$endif$
+$if(lang)$
+  pdflang={$lang$},
+$endif$
+$if(subject)$
+  pdfsubject={$subject$},
+$endif$
+$if(keywords)$
+  pdfkeywords={$for(keywords)$$keywords$$sep$, $endfor$},
+$endif$
+$if(colorlinks)$
+  colorlinks=true,
+  linkcolor={$if(linkcolor)$$linkcolor$$else$Maroon$endif$},
+  filecolor={$if(filecolor)$$filecolor$$else$Maroon$endif$},
+  citecolor={$if(citecolor)$$citecolor$$else$Blue$endif$},
+  urlcolor={$if(urlcolor)$$urlcolor$$else$Blue$endif$},
+$else$
+$if(boxlinks)$
+$else$
+  hidelinks,
+$endif$
+$endif$
+  pdfcreator={LaTeX via pandoc}}
+
+% ============================================================================
+% INIZIO DOCUMENTO
+% ============================================================================
+\begin{document}
+
+% ============================================================================
+% FRONTESPIZIO CON RIASSUNTO
+% ============================================================================
+$if(title)$
+\begin{titlepage}
+    \centering
+    \sffamily
+    
+    % Intestazione
+    {
+        \normalsize
+        Corsi Accademici di $corso$ \\
+        $conservatorio$ \par
+    }
+    \vspace{1cm}
+    
+    % Titolo
+    {
+        \large\bfseries
+        \MakeUppercase{$title$} \par
+        $if(subtitle)$
+          {\normalsize\itshape $subtitle$ \par}
+        $endif$
+    }
+    \vspace{.5cm}
+    
+    % Autore
+    {
+        \normalsize
+        di $author$ \par
+    }
+    \vspace{.5cm}
+    
+    % Dati esame
+    {
+        \normalsize
+        esame di $esame$ \\
+        $date$ \par
+    }
+    \vspace{.5cm}
+    
+    % Riassunto
+    $if(abstract)$
+    \begin{minipage}{0.9\textwidth}
+        \centering\large\bfseries RIASSUNTO \par
+        \vspace{0.5cm}
+        \normalsize\raggedright\mdseries
+        $abstract$
+    \end{minipage}
+    $endif$
+    \vspace*{1cm}
+\end{titlepage}
+$endif$
+
+% ============================================================================
+% INCLUDE BEFORE (da YAML)
+% ============================================================================
+$for(include-before)$
+$include-before$
+$endfor$
+
+% ============================================================================
+% INDICI
+% ============================================================================
+$if(toc)$
+$if(toc-title)$
+\renewcommand*\contentsname{$toc-title$}
+$endif$
+$endif$
+
+$if(lof)$
+\listoffigures
+$endif$
+
+$if(lot)$
+\listoftables
+$endif$
+
+% ============================================================================
+% CORPO DOCUMENTO
+% ============================================================================
+$body$
+
+\end{document}

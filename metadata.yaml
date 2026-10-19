@@ -1,0 +1,17 @@
+title: "Il Suono e la Forma"
+subtitle: "Un'analisi della sintesi granulare"
+author: "Mario Rossi"
+conservatorio: "Conservatorio A. Casella"
+citta: "L'Aquila"
+corso: "Musica Elettronica DCPL34"
+esame: "Sintesi e Campionamento"
+date: "15/07/2025"
+documentclass: article
+fontsize: 12pt
+toc: true
+toc-depth: 2
+csl: styles/consAq-author-date.csl
+nocite: "@*"
+mainfont:
+sansfont:
+monofont:
