@@ -4,7 +4,7 @@ Fin dalle prime esperienze di sintesi granulare al calcolatore, la specifica gra
 
 PGE segue lo stesso schema e sceglie per la specifica il formato YAML. Le ragioni sono tre. La prima è il versionamento: un file di testo si versiona con *git*, che diventa la documentazione del processo compositivo, e lo stesso testo può essere letto e discusso con un modello linguistico, che può diventare un'interfaccia alternativa. La seconda è che il motore, esposto come libreria, può essere pilotato da un livello compositivo più alto che generi YAML invece di scriverlo a mano. La terza è che la specifica dichiara soltanto la generazione dei grani, separata dal rendering: lo YAML diventa una lista di grani, una rappresentazione intermedia indipendente dal renderer che la consuma. Nel senso di Seeger [@Seeger1958] lo YAML è una notazione *prescrittiva*: un'istruzione data al motore prima del rendering. La partitura grafica, trattata in un capitolo successivo, è invece una notazione *descrittiva*, che documenta ciò che è stato davvero generato e non viene riletta come input.
 
-Questo capitolo descrive il linguaggio. Non è un manuale: la sintassi completa è nel riferimento del progetto (`docs/reference/yaml.md`) e qui si presentano i concetti e le scelte che la rendono coerente.
+Questo capitolo descrive il linguaggio, seguendo l'ordine del paper presentato al XXV CIM [@DeMattia2026Cim], da cui sono tratti anche gli esempi: si parte dallo stream minimo e si aggiunge una chiave alla volta. Non è un manuale: la sintassi completa è nel riferimento del progetto (`docs/reference/yaml.md`) e qui si presentano i concetti e le scelte che la rendono coerente.
 
 ## Lo stream come unità compositiva
 

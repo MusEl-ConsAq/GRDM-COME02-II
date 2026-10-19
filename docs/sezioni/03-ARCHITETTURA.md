@@ -1,6 +1,6 @@
 # Architettura di Python Granular Engine
 
-Python Granular Engine (d'ora in avanti PGE) è uno strumento per la composizione con la sintesi granulare del suono campionato. Il compositore non scrive codice: descrive in un file YAML uno o più *stream* granulari, e il sistema ne ricava un file audio e una partitura grafica. La versione descritta in questa tesina è la 9.1.0.
+Python Granular Engine (d'ora in avanti PGE) è uno strumento per la composizione con la sintesi granulare del suono campionato. Il compositore non scrive codice: descrive in un file YAML uno o più *stream* granulari, e il sistema ne ricava un file audio e una partitura grafica. La versione descritta in questa tesina è la 9.1.0 [@DeMattia2026Pge]. Il sistema è stato presentato al XXV Colloquio di Informatica Musicale [@DeMattia2026Cim], e questa tesina ne riprende l'impostazione ampliandola.
 
 Questo capitolo mostra come il sistema è costruito e perché è costruito così. Il linguaggio YAML, il grano, le voci e i renderer sono trattati nei capitoli successivi; qui interessa il disegno d'insieme e le scelte che lo tengono in piedi. Sono quattro. Chi decide *che cosa* suonare non sa *come* un programma di sintesi lo scrive. Il motore è usabile sia da riga di comando sia come libreria. Aggiungere un renderer, una finestra o una strategia non richiede di modificare il nucleo. Le composizioni sono riproducibili.
 
