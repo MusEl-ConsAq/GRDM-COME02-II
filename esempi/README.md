@@ -20,3 +20,5 @@ sono quelli originali e in parte datati (p. es. quelli sul seme).
 `render.py` scrive le MAP in `docs/images/` e, con `--audio`, il file audio accanto
 allo YAML (`.aif`, ignorato da git). I campioni sono quelli di `PGE_DIR/refs`
 (`voice.wav`).
+
+`mare-nostrum/disposizione.py` non e' un esempio ma uno script: disegna la disposizione degli stream del brano *mare-nostrum* (capitolo 10) leggendo il master dal repository del brano (`../mare-nostrum/configs/mare-nostrum.yml`, o un percorso passato come argomento). Il brano e' incompiuto e non e' copiato qui.
