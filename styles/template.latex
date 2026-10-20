@@ -138,6 +138,7 @@ $endif$
   commandchars=\\\{\},
   breaklines=true,
   breakanywhere=true,
+  samepage=true,
   fontsize=\small,
   frame=single,
   framesep=6pt,
