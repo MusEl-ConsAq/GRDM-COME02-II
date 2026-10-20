@@ -30,6 +30,15 @@ LENTI = {
                          {"t": 27.5, "y": .6, "zoom": 40.0, "corner": "top-right"}],
 }
 
+# Varianti di lettura della stessa MAP (capitolo 8): file docs/images/<token>_<tag>_map.pdf.
+VARIANTI = {
+    "grain_height": {
+        "duration": {"grain_shape": "arrow"},
+        "readspan": {"grain_shape": "arrow", "grain_height": "read_span"},
+        "bw": {"grain_shape": "arrow", "bw": True},
+    },
+}
+
 def main():
     import matplotlib
     matplotlib.use("Agg")
@@ -51,6 +60,10 @@ def main():
         pdf = os.path.join(REPO, "docs", "images", nome + "_map.pdf")
         api.export_score_pdf(gen, pdf, config=config, samples_dir=refs)
         print("MAP:", pdf)
+        for tag, extra in VARIANTI.get(nome, {}).items():
+            var = os.path.join(REPO, "docs", "images", f"{nome}_{tag}_map.pdf")
+            api.export_score_pdf(gen, var, config={**config, **extra}, samples_dir=refs)
+            print("MAP:", var)
         if audio:
             aif = os.path.join(os.path.dirname(yml), nome + ".aif")
             api.render_file(yml, aif, per_stream=(nome == "deviation"), samples_dir=refs)
