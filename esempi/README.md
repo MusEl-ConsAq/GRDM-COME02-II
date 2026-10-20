@@ -22,3 +22,5 @@ allo YAML (`.aif`, ignorato da git). I campioni sono quelli di `PGE_DIR/refs`
 (`voice.wav`).
 
 `mare-nostrum/disposizione.py` non e' un esempio ma uno script: disegna la disposizione degli stream del brano *mare-nostrum* (capitolo 10) leggendo il master dal repository del brano (`../mare-nostrum/configs/mare-nostrum.yml`, o un percorso passato come argomento). Il brano e' incompiuto e non e' copiato qui.
+
+`figure_teoria.py` non rende MAP: disegna le due figure del capitolo 2 (il segnale elementare di Gabor e otto finestre del catalogo di PGE).
