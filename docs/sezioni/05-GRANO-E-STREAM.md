@@ -153,7 +153,7 @@ Nell'esempio (`esempi/window/window.yml`) la finestra attraversa tre stati, a de
 
 ## La variazione stocastica
 
-I parametri di un grano non sono tutti decisi dal compositore uno per uno: sarebbe la specifica grano per grano che il capitolo precedente dichiarava intrattabile. La parte del caso è dichiarata a due livelli. Ogni parametro ha una traiettoria centrale, un inviluppo, e una banda di deviazione attorno a quella traiettoria, `_range`, da cui si estrae un valore diverso per ogni grano. È la tendency mask di Truax [@Truax1988], realizzata in forma testuale anche da CMask [@Bartetzki1997]. Con $c(\tau)$ la traiettoria centrale, $\rho(\tau)$ la larghezza della banda e $\xi_n$ un valore uniforme fra $-1/2$ e $1/2$, il parametro del grano $n$ al tempo normalizzato $\tau_n$ è
+I parametri di un grano non sono tutti decisi dal compositore uno per uno: sarebbe la specifica grano per grano che l'introduzione ha indicato come intrattabile. La parte del caso è dichiarata a due livelli. Ogni parametro ha una traiettoria centrale, un inviluppo, e una banda di deviazione attorno a quella traiettoria, `_range`, da cui si estrae un valore diverso per ogni grano. È la tendency mask di Truax [@Truax1988], realizzata in forma testuale anche da CMask [@Bartetzki1997]. Con $c(\tau)$ la traiettoria centrale, $\rho(\tau)$ la larghezza della banda e $\xi_n$ un valore uniforme fra $-1/2$ e $1/2$, il parametro del grano $n$ al tempo normalizzato $\tau_n$ è
 
 $$v_n = c(\tau_n) + \xi_n\,\rho(\tau_n), \qquad \xi_n \sim \mathcal{U}\!\left(-\tfrac{1}{2}, \tfrac{1}{2}\right)$$
 
