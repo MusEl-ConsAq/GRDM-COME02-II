@@ -9,6 +9,8 @@ metadata-file:
 
 template: styles/template.latex
 
+number-sections: true
+
 syntax-highlighting: tango
 
 filters:
