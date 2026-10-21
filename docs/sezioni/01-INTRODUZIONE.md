@@ -35,7 +35,7 @@ Cambia il tempo, e con il tempo tutto ciò che nel DMX-1000 era un limite dell'h
 | tempo | reale | differito |
 | grano più breve | 8 ms | un campione |
 | densità massima | 2 500 grani/s con venti voci | nessun tetto dichiarato (nello schizzo, oltre 4 000 grani/s per stream) |
-| voci | 20, 8 o 20, per modello | da 1 a 64 per stream, anche frazionarie, e un numero qualsiasi di stream |
+| voci | 20, 8 o 20, per modello | da 1 a 256 per stream, anche frazionarie, e un numero qualsiasi di stream |
 | materiale campionato | 4 032 campioni, circa 150-170 ms | file di qualsiasi durata |
 | controllo | comandi da tastiera, preset, rampe, maschere | un documento di testo |
 | visualizzazione | sovrapposizione delle maschere su un terminale | la MAP dei grani generati |
