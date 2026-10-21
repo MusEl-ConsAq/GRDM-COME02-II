@@ -5,6 +5,9 @@ on:
     branches: [ main ]
     paths:
       - '**/**'
+  # Le PR compilano il PDF (e lo allegano come artifact) senza pubblicarlo:
+  # e' la prova che la build funziona prima del merge.
+  pull_request:
 
 permissions:
   contents: write
@@ -15,32 +18,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/dmgiulioromano/latex-docker-ubuntu:2025.1-small
+      image: ghcr.io/dmgiulioromano/pandoc-latex-docker-ubuntu:2026.1-small
 
     steps:
     - name: Install all dependencies in one step
       run: |
         apt-get update
-        apt-get install -y git python3-pip fonts-liberation wget
-        pip install pyyaml
+        apt-get install -y git python3-yaml fonts-liberation
         tlmgr update --self
         tlmgr install framed fvextra
-        
-        # Download in parallelo (background jobs)
-        PANDOC_VERSION=3.8.2
-        PANDOC_XREF_VERSION=0.3.22        
-        wget https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb &
-        PANDOC_PID=$!
-        wget https://github.com/lierdakil/pandoc-crossref/releases/download/v${PANDOC_XREF_VERSION}/pandoc-crossref-Linux-X64.tar.xz &
-        CROSSREF_PID=$!        
-        # Aspetta che i download finiscano
-        wait $PANDOC_PID
-        wait $CROSSREF_PID        
-        apt-get install -y ./pandoc-${PANDOC_VERSION}-1-amd64.deb
-        tar -xJf pandoc-crossref-Linux-X64.tar.xz
-        mv pandoc-crossref /usr/local/bin/
-        rm pandoc-${PANDOC_VERSION}-1-amd64.deb pandoc-crossref-Linux-X64.tar.xz
-        # Verifica
+        # pandoc e pandoc-crossref sono gia' nell'immagine
+        # (pandoc-latex-docker-ubuntu = latex-docker-ubuntu + pandoc + pandoc-crossref)
+        pandoc --version
+        pandoc-crossref --version
         fc-cache -f -v
      
     - name: Checkout repository
@@ -91,12 +81,14 @@ jobs:
         overwrite: true
  
     - name: Upload artifact per Pages
+      if: github.ref == 'refs/heads/main'
       uses: actions/upload-pages-artifact@v4
       with:
         path: pages_artifact
 
 
     - name: Commit del documento assemblato
+      if: github.ref == 'refs/heads/main'
       run: |
         cd "$GITHUB_WORKSPACE"
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -108,6 +100,7 @@ jobs:
         git diff --staged --quiet || git commit -m "Auto-aggiornamento documento con template [skip ci]"
         
     - name: Push delle modifiche
+      if: github.ref == 'refs/heads/main'
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -115,7 +108,12 @@ jobs:
         
   deploy:
     needs: build
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy su GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
