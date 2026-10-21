@@ -187,6 +187,19 @@ $if(graphics)$
 \makeatletter
 \def\fps@figure{htbp}
 \makeatother
+
+% Parametri dei float. Le MAP sono larghe come il testo e, con la didascalia,
+% alte piu' di meta' pagina: con \floatpagefraction al valore predefinito (0.5)
+% LaTeX mette ognuna su una pagina di sole figure, centrata in verticale, col
+% bianco sopra e sotto. A 0.85 una figura va in cima (o in mezzo) a una pagina
+% di testo, e una pagina di sole figure si fa solo se e' davvero piena.
+\renewcommand{\topfraction}{0.85}
+\renewcommand{\bottomfraction}{0.7}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.85}
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{1}
+\setcounter{totalnumber}{3}
 $endif$
 
 $if(svg)$
