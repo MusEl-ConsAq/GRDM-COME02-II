@@ -103,6 +103,6 @@ Il brano ha, oggi, un materiale scelto, una famiglia di stream parenti con param
 - La consolidazione dello studio sui parametri: il diario di ascolto ha una sessione, e le regioni, le soglie e le zone d'ombra del frammento principale vanno ancora scritte a partire dall'ascolto.
 - Il destino degli stream silenziati, `stream2-norm` e `stream10`.
 - La forma complessiva: ingressi, sovrapposizioni, durata di ciascuna sezione.
-- La resa nello spazio: il pan di 360 gradi è oggi scritto per una coppia stereo, e il motore non vincola il numero di canali.
+- La resa nello spazio: il pan di 360 gradi è oggi scritto per una coppia stereo, perché i tre renderer sono stereofonici: il grano porta soltanto un angolo, e non vincola il numero di canali.
 
 <!-- TODO(giulio): aggiornare questo elenco con lo stato reale al momento della consegna (26/10/2026) e aggiungere, se vuoi, un ascolto guidato o una MAP di un passaggio del brano. Una MAP dell'intero brano non è praticabile: sono 3,3 milioni di grani su dieci stream. Una pagina breve di MAP, su un passaggio a scelta, lo è. -->
