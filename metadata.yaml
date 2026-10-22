@@ -10,6 +10,7 @@ documentclass: article
 fontsize: 12pt
 toc: true
 toc-depth: 2
+figureTitle: "Figura"
 csl: styles/consAq-author-date.csl
 nocite: "@*"
 mainfont:
