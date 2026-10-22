@@ -12,7 +12,6 @@ toc: true
 toc-depth: 2
 figureTitle: "Figura"
 csl: styles/consAq-author-date.csl
-nocite: "@nono1993, @stockhausen1991"
 mainfont:
 sansfont:
 monofont:
