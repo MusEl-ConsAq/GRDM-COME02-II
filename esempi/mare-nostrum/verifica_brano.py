@@ -62,7 +62,7 @@ from disposizione import codice, e_predefinito, leggi, stream_del_master, tratti
 CAPITOLO = REPO / "docs" / "sezioni" / "10-USO-COMPOSITIVO.md"
 
 # I grani che il motore produce con il seme dichiarato, uno stream alla volta
-# (la tabella del capitolo), e le voci che ciascuno stream prepara.
+# (la colonna «Grani» della tabella del capitolo).
 GRANI = {
     "stream2": 304042, "stream3": 934191, "stream9": 1524526, "stream5": 112093,
     "stream6": 302588, "stream10": 633345, "stream7": 34053, "stream8": 190663,
