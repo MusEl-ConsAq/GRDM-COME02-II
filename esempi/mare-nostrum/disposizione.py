@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Disegna la disposizione degli stream di mare-nostrum (capitolo 10).
 
-Uso:  python esempi/mare-nostrum/disposizione.py [../mare-nostrum/configs/mare-nostrum.yml]
+Uso:  python esempi/mare-nostrum/disposizione.py [--tutto] [../mare-nostrum/configs/mare-nostrum.yml]
 
 Legge il master del brano e, per ogni voce di `streams:`, lo stream: quello
 importato dal file se la voce ha `file:`, altrimenti la voce stessa, che e' uno
@@ -13,9 +13,12 @@ Una riga per stream, in ordine di ingresso. Il colore e' il campione sorgente;
 a sinistra, accanto al nome, il campione; a destra della barra, il numero di
 voci quando e' maggiore di uno. Gli stream che hanno soltanto i valori
 predefiniti (capitolo 4: la risintesi identica della sorgente) sono tratteggiati;
-gli stream silenziati (`mute`) sono tratteggiati e pallidi. I tratti in cui non
-suona nessuno stream sono in grigio, e quelli piu' lunghi di dieci secondi
-portano la durata.
+gli stream silenziati (`mute`) sono tratteggiati e pallidi.
+
+Il master contiene anche materiale messo da parte per un uso futuro, che per ora
+non fa parte del brano (`DA_PARTE`): la figura non lo disegna. Con `--tutto` lo
+disegna in tinta pallida, e i tratti in cui non suona nessuno stream sono in
+grigio, e quelli piu' lunghi di dieci secondi portano la durata.
 """
 import math
 import os
@@ -30,6 +33,12 @@ from matplotlib.patches import Patch
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(AQUI))
+
+# Gli ultimi stream del master, tutti sovrapposti dopo il secondo 828, sono
+# materiale messo da parte per un uso futuro: per ora non fanno parte del brano.
+# Il master non lo dice (nessuno e' silenziato): e' una dichiarazione dell'autore,
+# e qui la si ripete. Quando uno di questi stream entra nel brano, esce da qui.
+DA_PARTE = tuple(f"stream{n}" for n in range(12, 21))
 
 # Chiavi di piazzamento: stanno nel master accanto a `file:` e, in uno stream
 # scritto dentro, accanto al resto.
@@ -110,7 +119,7 @@ def righe_del_brano(master_path):
                           sample=os.path.splitext(s["sample"])[0],
                           muto=bool(s.get("mute")), voci=math.ceil(max(nv)),
                           voci_min=min(nv), voci_max=max(nv),
-                          minimo=e_predefinito(s)))
+                          minimo=e_predefinito(s), da_parte=s["stream_id"] in DA_PARTE))
     righe.sort(key=lambda r: r["onset"])
     return master, righe
 
@@ -128,7 +137,13 @@ def tratti_vuoti(righe, fine):
     return vuoti
 
 
-def disegna(master, righe, out):
+def disegna(master, righe, out, tutto=False):
+    """La figura. Senza `tutto`, solo gli stream del brano, fino alla fine dell'ultimo."""
+    if not tutto:
+        righe = [r for r in righe if not r["da_parte"]]
+        fine = max(r["onset"] + r["durata"] for r in righe)
+    else:
+        fine = float(master["duration"])
     # i campioni in ordine di ingresso: i primi prendono le tinte scure di tab20
     # (distinte fra loro), gli ultimi le chiare
     campioni = list(dict.fromkeys(r["sample"] for r in righe))
@@ -139,7 +154,6 @@ def disegna(master, righe, out):
     if len(set(breve.values())) < len(breve):  # due campioni con lo stesso codice
         breve = {c: c for c in campioni}
     n = len(righe)
-    fine = float(master["duration"])
 
     plt.rcParams.update({"font.size": 6, "hatch.linewidth": 0.5})
     fig, ax = plt.subplots(figsize=(6.7, 0.135 * n + 0.75))
@@ -151,10 +165,12 @@ def disegna(master, righe, out):
                     ha="center", va="top", fontsize=6, color="0.35")
     for i, r in enumerate(righe):
         y = n - 1 - i
+        pallido = r["muto"] or r["da_parte"]
         ax.barh(y, r["durata"], left=r["onset"], height=0.72,
-                color=colore[r["sample"]], alpha=0.35 if r["muto"] else 0.92,
+                color=colore[r["sample"]], alpha=0.35 if pallido else 0.92,
                 hatch="//////" if (r["muto"] or r["minimo"]) else None,
-                edgecolor="black", linewidth=0.4, zorder=2)
+                edgecolor="black", linewidth=0.4,
+                linestyle=":" if r["da_parte"] else "-", zorder=2)
         if r["voci"] > 1:
             if r["voci_min"] != r["voci_max"]:
                 testo = f'{r["voci_min"]:g}–{r["voci_max"]:.1f}'.replace(".", ",").replace(",0", "") + " voci"
@@ -183,6 +199,9 @@ def disegna(master, righe, out):
     if any(r["muto"] for r in righe):
         legenda.append(Patch(facecolor="white", edgecolor="black", hatch="//////", alpha=0.35,
                              linewidth=0.4, label="silenziato (mute)"))
+    if any(r["da_parte"] for r in righe):
+        legenda.append(Patch(facecolor="0.8", edgecolor="black", linestyle=":", linewidth=0.4,
+                             label="messo da parte, non fa parte del brano"))
     if legenda:
         # l'angolo in basso a destra e' occupato dagli ultimi stream, quello in alto
         # dall'annotazione del vuoto: la legenda sta a meta' altezza, a destra
@@ -194,9 +213,10 @@ def disegna(master, righe, out):
 
 
 if __name__ == "__main__":
-    master_path = (sys.argv[1] if len(sys.argv) > 1 else
+    argomenti = [a for a in sys.argv[1:] if a != "--tutto"]
+    master_path = (argomenti[0] if argomenti else
                    os.path.join(REPO, "..", "mare-nostrum", "configs", "mare-nostrum.yml"))
     master, righe = righe_del_brano(master_path)
     out = os.path.join(REPO, "docs", "images", "mare-nostrum_disposizione.pdf")
-    disegna(master, righe, out)
+    disegna(master, righe, out, tutto="--tutto" in sys.argv[1:])
     print("figura:", out)
