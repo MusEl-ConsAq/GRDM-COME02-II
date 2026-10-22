@@ -1,108 +1,67 @@
 # Uso compositivo
 
-PGE è nato per comporre, e questo capitolo lo mostra in uso. Il caso è *mare-nostrum*, un brano elettroacustico dell'autore che al momento della scrittura è a metà. Il capitolo ha quindi un'ambizione più ridotta di un'analisi: non descrive un lavoro concluso, ma lo stato di uno in corso, ciò che è già fissato, ciò che è ancora aperto e come lo strumento ha accompagnato il processo. Prima del caso reale, una sezione mostra a che cosa somiglia una configurazione ricca quando non è ancora un brano.
+PGE è nato per comporre, e questo capitolo lo mostra in uso. Il caso è *mare-nostrum*, un brano elettroacustico dell'autore che al momento della scrittura è a metà. Il capitolo ha quindi un'ambizione più ridotta di un'analisi: non descrive un lavoro concluso, ma lo stato di uno in corso, ciò che è già fissato, ciò che è ancora aperto e come lo strumento ha accompagnato il processo. Lo stato descritto è quello del repository del brano al commit `1979ce1`; i numeri si ricontrollano con lo script `esempi/mare-nostrum/verifica_brano.py`. Gli esempi dei capitoli precedenti isolano un meccanismo alla volta; un brano li usa tutti insieme, e il rapporto fra i parametri diventa la materia del lavoro.
 
 <!-- TODO(giulio): questo capitolo è una bozza ricostruita dai file dei repository (mare-nostrum, granulation-studies, PGE) e dalla tua frase di partenza. Le parti segnate TODO sono quelle che solo tu puoi scrivere: la poetica, il titolo, la scelta e la provenienza dei materiali, le decisioni di forma. -->
 
-## Dalla configurazione al brano
-
-Gli esempi dei capitoli precedenti isolano un meccanismo alla volta. Un brano li usa tutti insieme, e il rapporto fra i parametri diventa la materia del lavoro. Lo stream completo del paper [@DeMattia2026Cim] (`esempi/complete_example/complete_example.yml`) è una configurazione di questo tipo: un solo stream di circa 32 secondi in cui densità, distribuzione, durata del grano, finestra, altezza, pan, scarto di lettura e volume cambiano tutti nel tempo.
-
-![Lo stream completo. Il glifo del grano è la silhouette della finestra, alta quanto la durata; la finestra attraversa tre stati (Hann, `rexpodec`, Bartlett) e la forma delle teste cambia lungo lo stream. Le due lenti ingrandiscono due istanti a densità e a durata diverse.](docs/images/complete_example_map.pdf){width=100%}
-
-La figura mostra due cose che gli esempi singoli non mostravano. La prima è la testa del grano: il glifo non è una freccia ma la sagoma della finestra, e poiché la finestra è a sua volta un inviluppo a tre stati, la forma delle teste muta nel tempo, in modo leggibile nelle lenti. La seconda è la correlazione fra densità, scarto di lettura e durata sulla linea di lettura, qui ferma (`speed_ratio: 0`): dove la densità cade (da oltre 2 900 grani al secondo a poche centinaia) la nuvola si dirada, e dove lo scarto di lettura cresce i grani si staccano dalla linea e riempiono lo spazio sopra e sotto. Lo stream è una voce sola, e la sua unica sorgente è la voce registrata, la stessa di tutti gli esempi.
-
 ## Il brano
 
-*mare-nostrum* è un brano costruito con i lamenti e i pianti di bambini, trasformati in suono di mare. Il materiale di partenza è un corpus di registrazioni, ritagliate in frammenti di qualche secondo e numerate (`001-41_5-5_5.wav`, per esempio, che dai nomi e dalla configurazione degli studi sembra essere la registrazione 001, a partire da 41,5 secondi, per 5,5). La trasformazione è la granulazione: pochi millisecondi per grano, tanti grani sovrapposti, un puntatore che avanza lentamente nel frammento. A questa scala un grano da solo non porta un evento riconoscibile: il materiale tende a un suono continuo, di cui il frammento fornisce soprattutto il colore spettrale. La letteratura del capitolo 2 descrive il meccanismo. Sotto i circa 40 ms i suoni campionati perdono le loro qualità identificabili [@Roads2001, p. 189]; Truax pone a 50 ms la soglia sotto cui domina la fusione dei frammenti a frequenza audio, mentre sopra dominano le qualità timbriche della sorgente [@Truax1988, pp. 18-19]. I grani del brano, da 1 a 10 ms, stanno largamente al di sotto di entrambe. Roads osserva che certe granulazioni rendono la sorgente irriconoscibile distruggendone la morfologia [@Roads2001, p. 192], e Truax descrive la propria tessitura granulare come un suono in flusso costante, simile ai suoni ambientali e in particolare al suono dell'acqua [@Truax1988, pp. 24-25].
+*mare-nostrum* è un brano costruito con i lamenti e i pianti di bambini, trasformati in suono di mare. Il materiale di partenza è un corpus di registrazioni numerate, da cui il brano usa nove campioni. Cinque sono frammenti ritagliati, che portano nel nome il punto del taglio (`001-41_5-5_5.wav`, per esempio, che dai nomi e dalla configurazione degli studi sembra essere la registrazione 001, a partire da 41,5 secondi, per 5,5); gli altri quattro portano soltanto un numero (`004.wav`, `007.wav`, `011.wav`, `016.wav`). La trasformazione è la granulazione. Nel primo gruppo di stream, presentato più avanti, è la granulazione fine del capitolo 2: pochi millisecondi per grano, tanti grani sovrapposti, un puntatore che avanza lentamente nel frammento. A questa scala un grano da solo non porta un evento riconoscibile: il materiale tende a un suono continuo, di cui il frammento fornisce soprattutto il colore spettrale. Sotto i circa 40 ms i suoni campionati perdono le loro qualità identificabili [@Roads2001, p. 189]; Truax pone a 50 ms la soglia sotto cui domina la fusione dei frammenti a frequenza audio, mentre sopra dominano le qualità timbriche della sorgente [@Truax1988, pp. 18-19]. I grani di quegli stream, da meno di un millisecondo a diciotto, stanno al di sotto di entrambe le soglie. Il brano però non sta più tutto in questo regime: le durate dichiarate dei suoi grani vanno da 0,1 millisecondi a 3 secondi.
 
 <!-- TODO(giulio): qui va la poetica del brano, con le tue parole: perché pianti e lamenti di bambini, perché il mare, che cosa significa «mare nostrum» nel pezzo; la provenienza e le condizioni delle registrazioni (e come sono trattate); il rapporto fra testimonianza e trasformazione. Non l'ho scritta perché non è documentata in nessun file e non va ricostruita da me. -->
 
 ### Dal materiale al mare: uno studio sui parametri
 
-Il bersaglio è un percetto, la *connotazione della marea*, come lo chiama il diario di ascolto dell'autore, e non una configurazione. Per raggiungerlo l'autore ha costruito sopra PGE un piccolo laboratorio di studi, che vive nello stesso repository del brano. Uno studio (`study.yml`) dichiara uno stream di base, preso dal brano, e uno o più assi che si muovono mentre il resto sta fermo. Il motore rende un unico file audio in cui, in questo studio, ogni valore dura venti secondi, così che si possa ascoltare un parametro alla volta.
-
-Lo studio principale incrocia la durata del grano e il rapporto di altezza, su *001-41*, il frammento più ricorrente del brano. La durata va da un campione (circa 21 microsecondi a 48 kHz) a mezzo secondo, in ventiquattro valori. I passi raddoppiano, tranne per le durate la cui inversa cade fra 500 e 5 000 Hz (da 0,2 a 2 millisecondi): lì si infittiscono, perché l'orecchio discrimina meglio le altezze e un salto d'ottava si sente come un buco. Il rapporto di altezza va da 0,2 a 1 in sette valori, per lo più a passi geometrici, perché l'altezza è una grandezza esponenziale e passi uguali all'orecchio sono passi uguali di rapporto. Un secondo studio incrocia la durata con il fattore di riempimento.
-
-Il lessico dello studio traduce in termini percettivi grandezze già incontrate. La densità è l'unica altezza del sistema: sotto circa 20 Hz si sente un ritmo, sopra un'altezza, e nel mezzo c'è un *flutter* in cui le due percezioni si confondono. Il prodotto di densità e durata è il fattore di riempimento del capitolo 5, e la sua isolinea a 1, dove i grani passano da radi a continui, è chiamata *cresta*. Una *zona d'ombra* è un tratto dello spazio dei parametri in cui si può muovere molto un valore senza che l'orecchio senta una differenza. Il diario di ascolto ha, finora, soltanto la prima sessione (4 settembre 2026), che apre la scala sul frammento 001-41: la tabella delle regioni e delle soglie è ancora vuota.
-
-Il laboratorio prevede anche fasi successive (stati, una matrice di parentela fra stati, una composizione come percorso fra stati) che esistono come prototipi e non sono ancora state usate. Il ciclo di lavoro in questo momento è più semplice: si modifica lo studio, si rende l'audio, si ascolta, si corregge.
+Il bersaglio è un percetto, la *connotazione della marea*, come lo chiama il diario di ascolto dell'autore, e non una configurazione. Per raggiungerlo l'autore ha costruito sopra PGE un piccolo laboratorio di studi, che vive nello stesso repository del brano. Uno studio dichiara uno stream di base, preso dal brano, e uno o più assi che si muovono mentre il resto sta fermo. Gli studi sono cinque, tutti sul frammento *001-41*, quello di `stream2`, il primo stream del master: quattro incrociano due parametri (la durata del grano con il rapporto di altezza, con il fattore di riempimento e con la velocità del puntatore, e la velocità con il rapporto di altezza) e il quinto mette gli altri parametri su selettori. Nello studio principale, durata e rapporto di altezza, il motore rende un unico file audio in cui ogni valore dura venti secondi, così che si possa ascoltare un parametro alla volta, e la durata va da un campione (circa 21 microsecondi a 48 kHz) a mezzo secondo, in ventiquattro valori. Il lessico dello studio traduce in termini percettivi grandezze già incontrate. La densità è l'unica altezza del sistema: sotto circa 20 Hz si sente un ritmo, sopra un'altezza, e nel mezzo c'è un *flutter* in cui le due percezioni si confondono. Il prodotto di densità e durata è il fattore di riempimento del capitolo 5, e la sua isolinea a 1, dove i grani passano da radi a continui, è chiamata *cresta*. Una *zona d'ombra* è un tratto dello spazio dei parametri in cui si può muovere molto un valore senza che l'orecchio senta una differenza. Il diario di ascolto ha, finora, soltanto la prima sessione (4 settembre 2026): la tabella delle regioni e delle soglie è ancora vuota.
 
 ### Lo schizzo
 
-Il brano è un file YAML principale, il *master*, che importa uno stream per file (la voce `file:` del capitolo 4). Il master tiene la testa del brano (seme, durata, tempo) e il piazzamento di ogni stream, e ciascun file tiene tutto lo stream. Il contenuto reale è questo:
+Il brano è un file YAML principale, il *master*, che tiene la testa del brano (il seme 1441 e la durata) e dispone gli stream nel tempo. Ogni stream vi compare in una delle due forme del capitolo 4: come voce `file:`, che importa uno stream da un file, oppure scritto per intero dentro il master. Il brano ha quindici stream, undici file e quattro scritti dentro il master, e dura 675 secondi, undici minuti e un quarto. La `duration` del master, 999 secondi, è più lunga, perché il master contiene anche materiale messo da parte che non fa parte del brano (più avanti). La figura mostra la disposizione degli stream del brano.
 
-```yaml
-duration: 322.074
-bpm: 120
-seed: 1441
-streams:
-  - file: streams/stream2.yml
-    onset: 0
-  - file: streams/stream2-norm.yml
-    onset: 0
-    mute: true
-  - file: streams/stream3.yml
-    onset: 0
-  - file: streams/stream9.yml
-    onset: 11.061
-  - file: streams/stream5.yml
-    onset: 43.761
-  - file: streams/stream6.yml
-    onset: 56.679
-  - file: streams/stream7.yml
-    onset: 112.003
-  - file: streams/stream8.yml
-    onset: 159.003
-  - file: streams/stream4.yml
-    onset: 241.217
-  - file: streams/stream10.yml
-    onset: 120.03
-    mute: true
-```
+![La disposizione degli stream del brano *mare-nostrum*. Una riga per stream, in ordine di ingresso; il colore indica il campione sorgente, che il nome fra parentesi ripete; a destra delle barre, il numero di voci quando è maggiore di uno. Il materiale messo da parte, in fondo al master, non è disegnato.](docs/images/mare-nostrum_disposizione.pdf){width=100%}
 
-Il brano dura 322 secondi (cinque minuti e ventidue). Gli stream sono dieci, ma due sono silenziati (`mute: true`): `stream2-norm` è lo stesso stream di `stream2` su una copia normalizzata del frammento (presumibilmente per confronto), e `stream10` è un'altra variante, anch'essa silenziata. Restano otto stream attivi, disposti come mostra la figura.
+Il brano ha due gruppi. Nel primo, da 0 a 278 secondi, entrano uno dopo l'altro otto stream, tutti importati da file, fino a sette sovrapposti intorno al secondo 112, e poi escono, finché resta il solo `stream8`. Un respiro di 0,8 secondi lo separa dal secondo gruppo, da 279 a 675 secondi, più rado, da uno a cinque stream alla volta. Comincia con il solo `stream24`, per oltre un minuto, e fra 414 e 426 secondi riprende tre stream del primo gruppo: `stream25` e `stream27` sono uguali a `stream6` e a `stream9` a ogni chiave, e `stream26` è `stream3` con la durata del grano fissa a 6 millisecondi invece che in rampa. Il brano finisce con `stream26`, al secondo 675. La tabella riassume i dati che definiscono ciascuno stream del brano; il numero di grani è quello che il motore, alla versione che il repository del brano fissa, produce con il seme dichiarato.
 
-![La disposizione degli stream di *mare-nostrum* nello stato attuale. Il colore indica il campione sorgente; i rettangoli tratteggiati sono gli stream silenziati; a destra delle barre, il numero di voci quando è maggiore di uno.](docs/images/mare-nostrum_disposizione.pdf){width=100%}
+| Stream | Campione | Onset (s) | Durata (s) | Grano | Voci | Grani |
+|---|---|---:|---:|---:|---:|---:|
+| `stream2` | 001-41 | 0,0 | 178,5 | 1–9 ms | 1 | 304 042 |
+| `stream3` | 001-47 | 0,0 | 249,2 | 2–6 ms | 4 | 934 191 |
+| `stream9` | 001-47 | 11,1 | 249,2 | 0,4–11 ms | 2 | 1 524 526 |
+| `stream5` | 001-18 | 43,8 | 81,5 | 1,1–4,1 ms | 1 | 112 093 |
+| `stream6` | 001-3 | 56,7 | 88,3 | 1–5 ms | 1 | 302 588 |
+| `stream10` | 001-41 | 107,0 | 146,2 | 1–8 ms | 4 | 633 345 |
+| `stream7` | 001-65 | 112,0 | 26,4 | 1–18 ms | 1 | 34 053 |
+| `stream8` | 001-3 | 146,0 | 131,8 | 1–11 ms | 1 | 190 663 |
+| `stream24` | 016 | 278,6 | 87,4 | 0,1 ms | 4 | 2 727 140 |
+| `stream21` | 004 | 341,5 | 94,1 | 1–19 ms | 1 | 22 201 |
+| `stream22` | 011 | 342,2 | 129,2 | 1–3 s | 1 | 2 296 |
+| `stream25` | 001-3 | 414,1 | 88,3 | 1–5 ms | 1 | 302 955 |
+| `stream27` | 001-47 | 415,0 | 249,2 | 0,4–11 ms | 2 | 1 523 628 |
+| `stream26` | 001-47 | 425,7 | 249,2 | 6 ms | 4 | 665 552 |
+| `stream23` | 007 | 501,3 | 78,7 | 3 s | 4 | 5 706 |
 
-Due stream lunghi partono insieme a zero: `stream2`, che dura 173,5 secondi su *001-41*, e `stream3`, che ne dura 249,2 su un altro frammento (*001-47*) e ha quattro voci. Dopo undici secondi entra `stream9`, che granula lo stesso frammento di `stream3` con un'altra durata del grano. Poi si succedono stream più brevi, ciascuno su un frammento diverso: `stream5` e `stream6` si sovrappongono fra i 44 e i 135 secondi, `stream7` (26 secondi) si inserisce intorno al secondo 112, `stream8` riprende il frammento di `stream6` con un'altezza diversa, e `stream4` conclude, da 241 a 312 secondi. Il brano si chiude dieci secondi dopo l'ultimo stream.
+In totale il brano ha 9 284 979 grani, circa 9,3 milioni, e più del 60% sta in tre soli stream: `stream24`, `stream9` e `stream27`. Il modello di costo del capitolo 7 (circa 34 microsecondi per grano e 1,4 millisecondi per secondo di uscita, a un processo solo) prevede per il rendering poco più di cinque minuti: è una stima, non una misura.
 
-La tabella riassume i dati che definiscono ciascuno stream. Il numero di grani è quello che il motore, nello stato attuale del suo repository, produce con il seme dichiarato:
+<!-- TODO(giulio): descrivere la forma. Il master mostra due gruppi di stream (ingressi a 0, 11, 44, 57, 107, 112 e 146 s; poi da 279 a 675 s), ma non dice perché: perché il secondo gruppo comincia con il solo stream24 e riprende `stream6`, `stream3` e `stream9` fra 414 e 426 s; quale direzione prende il brano. Il CONTEXT.md di mare-nostrum chiama «drammaturgia» il ritmo fra ridondanza e novità e la rimanda a una fase successiva: qui si può dire a che punto è. -->
 
-| Stream | Frammento | Onset (s) | Durata (s) | Grano (ms) | Voci | Grani |
-|---|---|---|---|---|---|---|
-| `stream2` | 001-41 | 0 | 173,5 | 1–9 | 1 | 301 850 |
-| `stream3` | 001-47 | 0 | 249,2 | 2–6 | 4 | 934 191 |
-| `stream9` | 001-47 | 11,1 | 249,2 | 0,4–11 | 2 | 1 524 526 |
-| `stream5` | 001-18 | 43,8 | 81,5 | 1,1–4,1 | 1 | 112 093 |
-| `stream6` | 001-3 | 56,7 | 78,4 | 1–5 | 1 | 262 627 |
-| `stream7` | 001-65 | 112,0 | 26,4 | 1–18 | 1 | 34 053 |
-| `stream8` | 001-3 | 159,0 | 78,4 | 1–10 | 1 | 121 704 |
-| `stream4` | 002-20 | 241,2 | 70,9 | 3,2–20 | 4 | 52 486 |
+### Due vocabolari
 
-In totale il brano ha circa 3,3 milioni di grani. Il modello di costo del capitolo 7 (circa 34 microsecondi per grano, a un processo solo) ne prevede un rendering di circa due minuti: è una stima, non una misura.
+Gli otto stream del primo gruppo e le tre copie del secondo, undici in tutto, sono parenti, scritti con lo stesso vocabolario: fattore di riempimento 4 (in dieci su undici), durate dei grani per lo più fra uno e dieci millisecondi, puntatore a un decimo della velocità reale o meno con un piccolo scarto di lettura, verso di lettura invertito più volte lungo lo stream (capitolo 5), rapporto di altezza 0,2 in sei stream, 0,5 in due e 1 in tre, pan su una banda di 360 gradi. Quattro stream escono da questo vocabolario. `stream24` scende a grani di 0,1 millisecondi, circa cinque campioni a 48 kHz, con quattro voci e il gate di probabilità al 40% (capitolo 5): è lo stream più pesante, con 2,7 milioni di grani e oltre 35 000 al secondo. `stream22` e `stream23` salgono a grani da 1 a 3 secondi, da dieci a trenta volte il limite di 100 ms con cui Roads definisce il grano [@Roads2001, p. 86]: a quella scala un grano è un frammento della registrazione e non una particella, e i grani sono pochi (2 296 e 5 706), anche se si sovrappongono fino a 102 e a 460. `stream21` resta ai millisecondi e cambia l'uso della finestra, che passa da Hann a `rexpodec` dal 65% dello stream in poi, e dichiara un accordo che per ora non suona, perché lo stream ha una voce sola.
 
-### Che cosa hanno in comune gli stream
+### Il materiale messo da parte
 
-Gli stream attivi sono in gran parte parenti, scritti con lo stesso vocabolario. Il fattore di riempimento vale 4 in sette stream su otto, quindi in ogni istante circa quattro grani si sovrappongono. Le durate dei grani stanno per lo più fra uno e dieci millisecondi, e variano nel tempo con inviluppi. Il puntatore avanza a un decimo della velocità reale (`speed_ratio: 0.1`) o meno, in un anello normalizzato, con un piccolo scarto di lettura. Il verso di lettura si inverte più volte lungo lo stream, con un inviluppo sul parametro `read_direction` di cui si è visto il meccanismo nel capitolo 5. Il rapporto di altezza è 0,2 in quattro stream (circa due ottave e mezzo sotto), con una banda di variazione di 0,05, e 0,5 in altri due (un'ottava sotto). `stream9` e `stream4` fanno eccezione, con rapporto 1 e 0,3. Il pan occupa una banda di 360 gradi, l'intero cerchio del capitolo 5, e per questo il campo sonoro non ha una direzione privilegiata.
+Dal secondo 828 il master contiene altri nove stream, da `stream12` a `stream20`, tutti sovrapposti. Sono materiale messo da parte per un uso futuro, e per ora non fanno parte del brano: per questo la figura e la tabella non li mostrano e i numeri del capitolo non li contano. Otto hanno i valori predefiniti del capitolo 4 (uno ha in più un pan), e quindi sono lo stream minimo, la cui lista di grani ricostruisce la sorgente; il nono, `stream12`, è già lavorato (fino a 12,7 voci, un accordo, un gate di probabilità che resta a 0 per metà dello stream e sale a 100% alla fine). Insieme pesano 134 333 grani.
 
-`stream4`, l'ultimo ad entrare, si distingue dal resto: ha durate dei grani più lunghe (fino a 20 millisecondi, con un gradino iniziale), un fattore di riempimento che oscilla fra 0,4 e 2,75, un puntatore molto più lento (`speed_ratio: 0.01`) e una banda del pan di 100 gradi. Con grani più lunghi e riempimento sotto 1 in alcuni tratti, i grani tornano a essere separabili.
-
-<!-- TODO(giulio): descrivere la forma: perché questi ingressi (11, 44, 57, 112, 159, 241 s), che cosa succede fra i piani sovrapposti, quale direzione prende il brano. Il CONTEXT.md di mare-nostrum chiama «drammaturgia» il ritmo fra ridondanza e novità e la rimanda a una fase successiva: qui si può dire a che punto è. -->
+<!-- TODO(giulio): i nove stream messi da parte non sono silenziati nel master (nessuno ha `mute: true`): un rendering del master li suonerebbe insieme al brano, e la `duration` del master li conta. Se non devono suonare, aggiungere `mute: true` o spostarli in un master a parte; il capitolo dice soltanto che non fanno parte del brano. -->
 
 ### Il processo e la riproducibilità
 
-Due aspetti del lavoro mostrano le scelte del sistema alla prova. Il primo è la riproducibilità. Il seme 1441 sta nel master e vale per tutto il brano, e la realizzazione di ciascuno stream dipende, come nel capitolo 3, dal seme, dall'identificativo dello stream e dal componente stocastico. Lo stream ha l'identificativo del nome del suo file, e di qui una conseguenza non ovvia: *rinominare il file cambia il suono*. Un file `risacca.yml` è lo stream `risacca` nel brano e nel laboratorio, e se si rinominasse `stream2.yml` la sua realizzazione sarebbe un'altra. L'autore ha scelto di legare l'identificativo al nome del file perché lo stream suoni uguale nel brano e quando lo si apre da solo nel laboratorio. Prima del seme dichiarato ogni rendering era una realizzazione diversa: con il seme il brano è riproducibile, ma è diverso da tutti i rendering ascoltati prima, e va riascoltato prima di considerarlo valido. La cache per stream (capitolo 7) vede il seme del master: dopo un cambio di seme si rifanno da soli tutti gli stem.
+Due aspetti del lavoro mostrano le scelte del sistema alla prova. Il primo è la riproducibilità. Il seme 1441 sta nel master e vale per tutto il brano, e la realizzazione di ciascuno stream dipende, come nel capitolo 3, dal seme, dall'identificativo dello stream e dal componente stocastico. Lo stream importato ha l'identificativo del nome del suo file, e di qui una conseguenza non ovvia: *rinominare il file cambia il suono*. L'autore ha scelto di legare l'identificativo al nome del file perché lo stream suoni uguale nel brano e quando lo si apre da solo nel laboratorio. Lo mostra il brano stesso: `stream25` e `stream27` hanno gli stessi valori di `stream6` e di `stream9` e un'altra realizzazione (302 955 grani invece di 302 588, 1 523 628 invece di 1 524 526), e con lo stesso gruppo (`rng_group`, capitolo 4) avrebbero gli stessi grani, spostati nel tempo. Prima del seme dichiarato ogni rendering era una realizzazione diversa: con il seme il brano è riproducibile, ma è diverso da tutti i rendering ascoltati prima, e va riascoltato prima di considerarlo valido. Il secondo è la divisione del lavoro fra i file, che il repository fa rispettare con un test: il master tiene il piazzamento (onset, silenziamento, solo), e il file dello stream tiene il suono. Lo stato attuale non rispetta più la regola che vuole un file per stream: tredici stream, quattro del brano e nove del materiale messo da parte, sono scritti dentro il master, nella forma in cui li salva PGE-ui, e il test non passa.
 
-Il secondo è la divisione del lavoro fra i file, che il repository fa rispettare con un test. Il master tiene il piazzamento (onset, silenziamento, solo), e il file dello stream tiene il suono. Spostare uno stream nel tempo o zittirlo si fa nel master; cambiarne il suono si fa nel file. Un file nella cartella degli stream che il master non nomina è un errore del test, perché non suonerebbe da nessuna parte. Lo stesso editor grafico del motore, PGE-ui, rispetta la divisione: un onset toccato va nel master, un volume toccato nel file.
+<!-- TODO(giulio): decidere se estrarre i tredici stream scritti dentro il master (quattro del brano, nove del materiale messo da parte) in file (PGE-ui sa dividere e duplicare gli stream) o allentare la regola e il test del repository del brano; fino ad allora questo capitolo dice che il test non passa. -->
 
 ## Stato dei lavori
 
-Il brano ha, oggi, un materiale scelto, una famiglia di stream parenti con parametri decisi a orecchio, una disposizione nel tempo e un seme. Non ha ancora la forma conclusa. Restano aperte, per quanto si ricava dal repository, almeno quattro cose.
+Il brano ha, oggi, un materiale scelto di nove campioni, due vocabolari di stream, una disposizione nel tempo in due gruppi e un seme. Non ha ancora la forma conclusa. Accanto al brano, nel master, c'è materiale messo da parte per un uso futuro. Restano aperte, per quanto si ricava dal repository, almeno quattro cose: la forma complessiva, cioè ingressi, sovrapposizioni e durata di ciascun gruppo; la consolidazione dello studio sui parametri, perché il diario di ascolto ha una sessione e le regioni, le soglie e le zone d'ombra del frammento principale vanno ancora scritte a partire dall'ascolto; l'allineamento fra il master e la regola che vuole un file per stream; la resa nello spazio, perché il pan di 360 gradi è oggi scritto per una coppia stereo, dato che i tre renderer sono stereofonici.
 
-- La consolidazione dello studio sui parametri: il diario di ascolto ha una sessione, e le regioni, le soglie e le zone d'ombra del frammento principale vanno ancora scritte a partire dall'ascolto.
-- Il destino degli stream silenziati, `stream2-norm` e `stream10`.
-- La forma complessiva: ingressi, sovrapposizioni, durata di ciascuna sezione.
-- La resa nello spazio: il pan di 360 gradi è oggi scritto per una coppia stereo, perché i tre renderer sono stereofonici: il grano porta soltanto un angolo, e non vincola il numero di canali.
-
-<!-- TODO(giulio): aggiornare questo elenco con lo stato reale al momento della consegna (26/10/2026) e aggiungere, se vuoi, un ascolto guidato o una MAP di un passaggio del brano. Una MAP dell'intero brano non è praticabile: sono 3,3 milioni di grani su dieci stream. Una pagina breve di MAP, su un passaggio a scelta, lo è. -->
+<!-- TODO(giulio): aggiornare questo elenco con lo stato reale al momento della consegna (26/10/2026) e aggiungere, se vuoi, un ascolto guidato o una MAP di un passaggio del brano. Una MAP dell'intero brano non è praticabile: sono 9,3 milioni di grani su quindici stream. Una pagina breve di MAP, su un passaggio a scelta, lo è, ma serve il corpus audio, che non sta nel repository. -->
