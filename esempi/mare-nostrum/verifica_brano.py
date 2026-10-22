@@ -6,34 +6,38 @@ Uso:  python esempi/mare-nostrum/verifica_brano.py [../mare-nostrum/configs/mare
 Il brano non e' in questo repo (e' incompiuto): lo script legge il master dal
 repository del brano, accanto a questo (o dal percorso passato come argomento),
 e controlla con `assert` che cosa del capitolo un programma puo' verificare. Le
-cifre sono quelle del master al commit 1979ce1 (22 ottobre 2026), col motore
-alla versione che il repository del brano fissa (1188dbc). Se il brano e'
-andato avanti le verifiche falliscono: e' il segnale che il capitolo va
-riletto, non che lo script sia sbagliato.
+cifre sono quelle del master al commit 1979ce1, col motore alla versione che il
+repository del brano fissa (1188dbc). Se il brano e' andato avanti le verifiche
+falliscono: e' il segnale che il capitolo va riletto, non che lo script sia
+sbagliato.
+
+Il master contiene il brano (quindici stream) e, in fondo, nove stream messi da
+parte per un uso futuro, che per ora non ne fanno parte (`DA_PARTE`, in
+disposizione.py). I numeri del capitolo sono quelli del brano, salvo dove il
+capitolo dice altrimenti.
 
 Il motore e' quello del submodule `engine/` del repository del brano, se c'e';
 altrimenti `PGE_DIR` (default ../PythonGranularEngine). Il numero di grani
 dipende da durata, densita' e seme, non dal contenuto audio: il corpus non e'
 versionato, e i campioni sono rumore sintetico dai nomi giusti (come fanno i
 test del brano). Ogni sezione controlla una parte del capitolo:
-  1. la testa del master e gli stream: due forme, nessuno silenziato;
-  2. il profilo nel tempo: tre gruppi, due vuoti, la sovrapposizione massima;
-  3. i campioni: quattordici, due tipi di nome, uno per forma di stream;
+  1. la testa del master e gli stream: due forme, il brano e il materiale messo da parte;
+  2. il profilo del brano nel tempo: due gruppi, un respiro, la sovrapposizione massima;
+  3. i campioni: nove nel brano, quattordici nel master;
   4. le copie (`stream25`, `stream26`, `stream27`) e la famiglia dei primi stream;
   5. i due vocabolari: durate dei grani, densita', gate, voci, finestre;
-  6. gli otto stream a valori predefiniti, che sono lo stream minimo del capitolo 4;
+  6. il materiale messo da parte: otto stream a valori predefiniti, e `stream12`;
   7. i grani di ogni stream, sul motore vero, e le densita' che ne vengono;
   8. le copie hanno un'altra realizzazione, e con `rng_group` gli stessi grani;
   9. la tabella del capitolo coincide con i dati;
  10. il modello di costo del capitolo 7 applicato al brano;
- 11. le intestazioni di PGE-ui e la regola «un file per stream» del repository del brano.
+ 11. la regola «un file per stream» del repository del brano.
 """
 import contextlib
 import copy
 import io
 import os
 import re
-import subprocess
 import sys
 import tempfile
 from concurrent.futures import ProcessPoolExecutor
@@ -57,12 +61,13 @@ else:
 sys.path.insert(0, str(PGE / "src"))
 sys.path.insert(0, str(AQUI))
 
-from disposizione import codice, e_predefinito, leggi, stream_del_master, tratti_vuoti, valori  # noqa: E402
+from disposizione import (DA_PARTE, codice, e_predefinito, leggi, stream_del_master,  # noqa: E402
+                          tratti_vuoti, valori)
 
 CAPITOLO = REPO / "docs" / "sezioni" / "10-USO-COMPOSITIVO.md"
 
 # I grani che il motore produce con il seme dichiarato, uno stream alla volta
-# (la colonna «Grani» della tabella del capitolo).
+# (la colonna «Grani» della tabella del capitolo, e quelli del materiale messo da parte).
 GRANI = {
     "stream2": 304042, "stream3": 934191, "stream9": 1524526, "stream5": 112093,
     "stream6": 302588, "stream10": 633345, "stream7": 34053, "stream8": 190663,
@@ -71,14 +76,13 @@ GRANI = {
     "stream16": 4798, "stream20": 5219, "stream17": 4158, "stream19": 4853,
     "stream13": 3381, "stream14": 3998, "stream12": 100329, "stream15": 1999,
 }
-TOTALE = 9419312
-GRUPPI = (  # (primo, ultimo) stream per ingresso, e i grani del gruppo
-    ("stream2", "stream8", 4035501), ("stream24", "stream23", 5249478),
-    ("stream18", "stream15", 134333))
+TOTALE_BRANO = 9284979          # i quindici stream del brano
+GRANI_DA_PARTE = 134333         # i nove stream messi da parte
+TOTALE_MASTER = TOTALE_BRANO + GRANI_DA_PARTE
+GRUPPI = (  # primo e ultimo stream per ingresso, e i grani del gruppo
+    ("stream2", "stream8", 4035501), ("stream24", "stream23", 5249478))
 RIVERRUN = 2375  # grani al secondo, il massimo di Riverrun (Truax 1988, p. 25)
-
-SECONDI = (  # i vuoti del master, come intervalli [a, b]
-    (277.852, 278.634), (674.954, 827.803))
+RESPIRO = (277.852, 278.634)  # l'unico tratto in cui il brano non ha stream, fra i due gruppi
 
 
 def ok(testo):
@@ -89,11 +93,17 @@ def vicino(a, b, tol=2e-3):
     return abs(a - b) <= tol
 
 
-# --- il brano, letto dal master -------------------------------------------------
+# --- il master, letto per stream -------------------------------------------------
 
 def master_e_stream():
     master = leggi(MASTER)
     return master, stream_del_master(master, str(MASTER.parent))
+
+
+def il_brano():
+    """Il master, gli stream del brano e quelli messi da parte."""
+    master, ss = master_e_stream()
+    return master, [s for s in ss if s["stream_id"] not in DA_PARTE], [s for s in ss if s["stream_id"] in DA_PARTE]
 
 
 def fine(s):
@@ -103,14 +113,14 @@ def fine(s):
 # --- 1. la testa e gli stream -------------------------------------------------------
 
 def testa_e_stream():
-    master, ss = master_e_stream()
+    master, brano, parte = il_brano()
+    ss = brano + parte
     assert master["duration"] == 998.833 and master["bpm"] == 120 and master["seed"] == 1441
-    ok("testa del master: seed 1441, 998,833 s (16 minuti e 39), 120 bpm")
+    ok("testa del master: seed 1441, 998,833 s, 120 bpm")
     voci = master["streams"]
     con_file = [v["file"] for v in voci if "file" in v]
     dentro = [v["stream_id"] for v in voci if "file" not in v]
     assert len(voci) == 24 and len(con_file) == 11 and len(dentro) == 13
-    assert [s["stream_id"] for s in ss].count("stream2") == 1
     assert len({s["stream_id"] for s in ss}) == 24
     assert sorted(os.path.basename(f)[:-4] for f in con_file) == sorted(
         ["stream2", "stream3", "stream5", "stream6", "stream7", "stream8", "stream9",
@@ -118,6 +128,12 @@ def testa_e_stream():
     assert sorted(dentro) == sorted(f"stream{n}" for n in range(12, 25))
     assert not any(s.get("mute") or s.get("solo") for s in ss)
     ok("24 stream, 11 importati da file e 13 scritti dentro il master, nessuno silenziato")
+    assert sorted(DA_PARTE) == sorted(f"stream{n}" for n in range(12, 21)) and set(DA_PARTE) <= set(dentro)
+    assert len(brano) == 15 and len(parte) == 9
+    assert sorted(s["stream_id"] for s in brano if s["stream_id"] in dentro) == \
+        ["stream21", "stream22", "stream23", "stream24"]
+    ok("il brano ha 15 stream: 11 importati e 4 scritti dentro (da `stream21` a `stream24`); "
+       "gli altri 9 (da `stream12` a `stream20`) sono messi da parte")
 
 
 # --- 2. il profilo nel tempo ---------------------------------------------------------
@@ -135,37 +151,38 @@ def sovrapposizioni(intervalli):
 
 
 def profilo():
-    master, ss = master_e_stream()
-    righe = [dict(onset=float(s["onset"]), durata=float(s["duration"]), muto=False) for s in ss]
-    ultimo = max(fine(s) for s in ss)
-    assert vicino(ultimo, 988.833) and vicino(master["duration"], ultimo + 10)
-    vuoti = tratti_vuoti(righe, master["duration"])
-    attesi = list(SECONDI) + [(988.833, 998.833)]
-    assert len(vuoti) == 3 and all(vicino(a, x) and vicino(b, y) for (a, b), (x, y) in zip(vuoti, attesi)), vuoti
-    assert 0.78 < vuoti[0][1] - vuoti[0][0] < 0.79 and round(vuoti[1][1] - vuoti[1][0]) == 153
-    ok("tre tratti senza stream: 0,8 s a 278 s, 153 s da 675 a 828 s, la coda di 10 s dopo l'ultimo stream")
-    tratti = sovrapposizioni([(float(s["onset"]), fine(s)) for s in ss])
-    massimo = max(n for a, b, n in tratti)
-    assert massimo == 9
-    cima = [(a, b) for a, b, n in tratti if n == 9]
-    assert len(cima) == 1 and vicino(cima[0][0], 889.152) and vicino(cima[0][1], 939.152)
-    ok("la sovrapposizione massima e' di nove stream, per cinquanta secondi, da 889 a 939 s")
-    # i tre gruppi: gli stream fra un vuoto e l'altro
-    taglio = [b for a, b in SECONDI]
-    gruppi = [[], [], []]
-    for s in ss:
-        gruppi[sum(float(s["onset"]) >= t - 1e-6 for t in taglio)].append(s)
-    assert [len(g) for g in gruppi] == [8, 7, 9]
+    master, brano, parte = il_brano()
+    fine_brano = max(fine(s) for s in brano)
+    assert vicino(fine_brano, 674.954) and round(fine_brano) == 675
+    assert int(fine_brano // 60) == 11 and 14.9 < fine_brano % 60 <= 15
+    assert vicino(fine_brano, fine(next(s for s in brano if s["stream_id"] == "stream26")))
+    ok("il brano finisce con `stream26` a 674,954 s: 675 secondi, undici minuti e un quarto")
+    ultimo = max(fine(s) for s in brano + parte)
+    assert vicino(ultimo, 988.833) and vicino(master["duration"], ultimo + 10) and master["duration"] > fine_brano
+    ok("la `duration` del master (998,833 s) e' dieci secondi dopo l'ultimo stream, che e' del materiale messo da parte")
+    righe = [dict(onset=float(s["onset"]), durata=float(s["duration"]), muto=False) for s in brano]
+    vuoti = tratti_vuoti(righe, fine_brano)
+    assert len(vuoti) == 1 and vicino(vuoti[0][0], RESPIRO[0]) and vicino(vuoti[0][1], RESPIRO[1])
+    assert 0.78 < vuoti[0][1] - vuoti[0][0] < 0.79
+    ok("nel brano c'e' un solo tratto senza stream: 0,8 s fra la fine di `stream8` (278 s) e l'ingresso di `stream24`")
+    gruppi = [[], []]
+    for s in brano:
+        gruppi[float(s["onset"]) >= RESPIRO[1] - 1e-6].append(s)
+    assert [len(g) for g in gruppi] == [8, 7]
     for g, (primo, ultimo_stream, _) in zip(gruppi, GRUPPI):
         ordine = [s["stream_id"] for s in sorted(g, key=lambda s: (float(s["onset"]), s["stream_id"]))]
         assert ordine[0] == primo and ordine[-1] == ultimo_stream, (ordine, primo, ultimo_stream)
+    importati = {v["stream_id"] if "stream_id" in v else os.path.basename(v["file"])[:-4]
+                 for v in master["streams"] if "file" in v}
+    assert all(s["stream_id"] in importati for s in gruppi[0])
     picchi = [max(n for a, b, n in sovrapposizioni([(float(s["onset"]), fine(s)) for s in g])) for g in gruppi]
-    assert picchi == [7, 5, 9]
+    assert picchi == [7, 5]
     primo = sovrapposizioni([(float(s["onset"]), fine(s)) for s in gruppi[0]])
     sette = [(a, b) for a, b, n in primo if n == 7]
     assert len(sette) == 1 and vicino(sette[0][0], 112.003) and vicino(sette[0][1], 125.309)
-    ok("tre gruppi di 8, 7 e 9 stream, con al massimo 7 (intorno al secondo 112), 5 e 9 stream insieme")
-    d = {s["stream_id"]: s for s in ss}
+    ok("due gruppi di 8 (tutti importati) e 7 stream, con al massimo 7 (intorno al secondo 112) e 5 stream insieme")
+    d = {s["stream_id"]: s for s in brano}
+    tratti = sovrapposizioni([(float(s["onset"]), fine(s)) for s in brano])
     solo = [(a, b) for a, b, n in tratti if n == 1 and 278 < a < 342]
     assert len(solo) == 1 and solo[0][1] - solo[0][0] > 60
     assert vicino(solo[0][0], float(d["stream24"]["onset"])) and vicino(solo[0][1], float(d["stream21"]["onset"]))
@@ -173,26 +190,37 @@ def profilo():
     uno = [(a, b) for a, b, n in tratti if n == 1 and a < 278]
     assert len(uno) == 1 and uno[0][0] > 260 and vicino(uno[0][1], fine(d["stream8"]))
     ok("alla fine del primo gruppo resta il solo `stream8`, che finisce a 277,9 s")
+    primo_da_parte = min(float(s["onset"]) for s in parte)
+    assert round(primo_da_parte) == 828 and primo_da_parte > fine_brano
+    tratti_parte = sovrapposizioni([(float(s["onset"]), fine(s)) for s in parte])
+    cima = [(a, b) for a, b, n in tratti_parte if n == 9]
+    assert max(n for a, b, n in tratti_parte) == 9 and len(cima) == 1
+    assert vicino(cima[0][0], 889.152) and vicino(cima[0][1], 939.152)
+    ok("il materiale messo da parte comincia al secondo 828, dopo la fine del brano, e arriva a nove stream insieme")
 
 
 # --- 3. i campioni ----------------------------------------------------------------
 
 def campioni():
-    master, ss = master_e_stream()
-    nomi = {s["sample"] for s in ss}
+    master, brano, parte = il_brano()
+    nomi = {s["sample"] for s in brano + parte}
     assert len(nomi) == 14
-    frammenti = sorted(n for n in nomi if n.startswith("001-"))
-    numerati = sorted(n for n in nomi if re.fullmatch(r"\d{3}\.wav", n))
-    assert len(frammenti) == 5 and len(numerati) == 9 and len(frammenti) + len(numerati) == len(nomi)
-    assert numerati[0] == "002.wav" and numerati[-1] == "016.wav"
-    importati = {v["file"] for v in master["streams"] if "file" in v}
+    nomi_brano = {s["sample"] for s in brano}
+    frammenti = sorted(n for n in nomi_brano if n.startswith("001-"))
+    numerati = sorted(n for n in nomi_brano if re.fullmatch(r"\d{3}\.wav", n))
+    assert len(nomi_brano) == 9 and len(frammenti) == 5 and numerati == ["004.wav", "007.wav", "011.wav", "016.wav"]
     for v in master["streams"]:
         if "file" in v:
             assert leggi(MASTER.parent / v["file"])["streams"][0]["sample"] in frammenti
-        else:
+        elif v["stream_id"] not in DA_PARTE:
             assert v["sample"] in numerati
-    ok("quattordici campioni: cinque frammenti `001-*` negli stream importati, nove file numerati "
-       f"da 002 a 016 negli stream scritti dentro (importati: {len(importati)})")
+    ok("il brano usa nove campioni: cinque frammenti `001-*`, tutti negli stream importati, "
+       "e quattro file numerati (004, 007, 011, 016), negli stream scritti dentro")
+    nomi_parte = [s["sample"] for s in parte]
+    assert len(set(nomi_parte)) == 9
+    soli = sorted(set(nomi_parte) - nomi_brano)
+    assert soli == ["002.wav", "006.wav", "008.wav", "009.wav", "013.wav"]
+    ok("il master cita quattordici campioni; cinque (002, 006, 008, 009, 013) stanno soltanto nel materiale messo da parte")
 
 
 # --- 4. copie e famiglia -----------------------------------------------------------
@@ -240,13 +268,13 @@ def copie_e_famiglia():
 # --- 5. i due vocabolari --------------------------------------------------------------
 
 def vocabolari():
-    _, ss = master_e_stream()
-    d = {s["stream_id"]: s for s in ss}
-    durate = {s["stream_id"]: valori(s["grain"]["duration"]) for s in ss}
+    _, brano, parte = il_brano()
+    d = {s["stream_id"]: s for s in brano + parte}
+    durate = {s["stream_id"]: valori(s["grain"]["duration"]) for s in brano}
     assert min(min(v) for v in durate.values()) == 0.0001 and durate["stream24"] == [0.0001]
     assert max(max(v) for v in durate.values()) == 3 and max(durate["stream22"]) == 3 and durate["stream23"] == [3.0]
     assert round(3 / 0.0001) == 30000  # piu' di quattro ordini di grandezza
-    ok("le durate dichiarate dei grani vanno da 0,1 ms (`stream24`) a 3 s (`stream22`, `stream23`)")
+    ok("le durate dichiarate dei grani del brano vanno da 0,1 ms (`stream24`) a 3 s (`stream22`, `stream23`)")
     s24 = d["stream24"]
     assert s24["pitch"]["ratio"] == 8 and s24["voices"]["num_voices"] == 4 and s24["grain"]["envelope"] == "all"
     assert min(valori(s24["fill_factor"])) == 0.61 and max(valori(s24["fill_factor"])) == 0.9
@@ -260,29 +288,22 @@ def vocabolari():
     assert 1 / 0.1 == 10 and 3 / 0.1 == 30
     ok("`stream22` e `stream23`: densita' dichiarata (3-33 e 2,5-39 grani/s), lista di quattro finestre, "
        "grani da 10 a 30 volte il limite di 100 ms; `stream23` ha quattro voci e 20 dB di banda di volume")
-    gate = {s["stream_id"]: s["deviation_probability"] for s in ss if "deviation_probability" in s}
+    gate = {s["stream_id"]: s["deviation_probability"] for s in brano + parte if "deviation_probability" in s}
     assert gate == {"stream24": 40, "stream23": 70, "stream12": [[0.4967, 0], [0.99663, 100]]}
     ok("il gate `deviation_probability` e' in tre stream: 40 in `stream24`, 70 in `stream23`, "
-       "in rampa da 0 a 100 nella seconda meta' di `stream12`")
-    s12 = d["stream12"]
-    assert valori(s12["voices"]["num_voices"]) == [1.0, 12.74] and s12["voices"]["pitch"]["chord"] == "maj13s11"
-    assert s12["voices"]["pitch"]["inversion"] == 3 and s12["voices"]["onset_offset"]["max_offset"] == 10
-    assert s12["voices"]["pointer"]["pointer_range"] == 1 and valori(s12["voices"]["pan"]["spread"]) == [60.0, 60.0, 180.0]
-    assert valori(s12["grain"]["duration"]) == [0.001, 0.0031, 0.05]
-    ok("`stream12`: da 1 a 12,74 voci, accordo `maj13s11` in terzo rivolto, scarto di onset fino a 10 s, "
-       "puntatore stocastico su tutto il file, pan da 60 a 180 gradi, grani da 1 a 50 ms")
+       "in rampa da 0 a 100 nella seconda meta' di `stream12`, che e' messo da parte")
     s21 = d["stream21"]
     assert s21["grain"]["envelope"] == {"from": "hanning", "to": "rexpodec", "curve": [[0.65, 0], [1, 1]]}
     assert s21["voices"]["num_voices"] == 1 and s21["voices"]["pitch"]["chord"] == "sus4"
     ok("`stream21`: finestra da Hann a `rexpodec` dal 65% dello stream, accordo `sus4` con una voce sola")
 
 
-# --- 6. gli stream a valori predefiniti ------------------------------------------------
+# --- 6. il materiale messo da parte -----------------------------------------------------
 
-def predefiniti():
-    _, ss = master_e_stream()
-    d = {s["stream_id"]: s for s in ss}
-    minimi = sorted(s["stream_id"] for s in ss if e_predefinito(s))
+def materiale_da_parte():
+    _, brano, parte = il_brano()
+    d = {s["stream_id"]: s for s in parte}
+    minimi = sorted(s["stream_id"] for s in parte if e_predefinito(s))
     assert minimi == [f"stream{n}" for n in range(14, 21)], minimi
     s13 = pulito(d["stream13"])
     assert (s13.pop("pan"), s13.pop("pan_range")) == (-110, 80)
@@ -291,13 +312,23 @@ def predefiniti():
     assert 2 / 0.05 == 40
     assert sorted(round(float(d[f"stream{n}"]["duration"]), 3) for n in range(13, 21)) == \
         [50, 84.552, 100, 104, 120, 121.356, 130.506, 140]
+    assert sorted(d[f"stream{n}"]["sample"] for n in range(13, 21)) == \
+        ["004.wav", "006.wav", "007.wav", "008.wav", "009.wav", "011.wav", "013.wav", "016.wav"]
     ok("da `stream13` a `stream20`: valori predefiniti (`stream13` ha in piu' un pan a -110 con banda 80), "
-       "quaranta grani al secondo, durate da 50 a 140 s")
+       "quaranta grani al secondo, otto campioni diversi, durate da 50 a 140 s")
+    s12 = d["stream12"]
+    assert valori(s12["voices"]["num_voices"]) == [1.0, 12.74] and s12["voices"]["pitch"]["chord"] == "maj13s11"
+    assert s12["voices"]["pitch"]["inversion"] == 3 and s12["voices"]["onset_offset"]["max_offset"] == 10
+    assert s12["voices"]["pointer"]["pointer_range"] == 1 and s12["deviation_probability"] == [[0.4967, 0], [0.99663, 100]]
+    assert s12["sample"] == "002.wav"
+    ok("`stream12`: da 1 a 12,74 voci, accordo `maj13s11` in terzo rivolto, scarto di onset fino a 10 s, "
+       "puntatore stocastico su tutto il file, gate da 0 a 100 nella seconda meta'")
 
 
 # --- il motore ---------------------------------------------------------------------
 
 _CAMPIONI = {}
+_GEN = {}
 
 
 def campioni_sintetici():
@@ -349,9 +380,6 @@ def _grani_dello_stream(i):
                 concorrenti=concorrenti)
 
 
-_GEN = {}
-
-
 # --- 7. i grani ---------------------------------------------------------------------
 
 def grani():
@@ -362,17 +390,24 @@ def grani():
     per_stream = {r["stream"]: r for r in risultati}
     assert {k: v["grani"] for k, v in per_stream.items()} == GRANI, \
         {k: (GRANI[k], per_stream[k]["grani"]) for k in GRANI if GRANI[k] != per_stream[k]["grani"]}
-    assert sum(GRANI.values()) == TOTALE
-    ok(f"grani del brano: {TOTALE:,} ({TOTALE / 1e6:.1f} milioni), uno stream alla volta come nella tabella".replace(",", " "))
-    for (primo, ultimo, atteso), nomi in zip(GRUPPI, gruppi_per_nome()):
+    brano = [k for k in GRANI if k not in DA_PARTE]
+    assert sum(GRANI[k] for k in brano) == TOTALE_BRANO
+    assert sum(GRANI[k] for k in DA_PARTE) == GRANI_DA_PARTE and sum(GRANI.values()) == TOTALE_MASTER
+    ok(f"grani del brano: {TOTALE_BRANO:,} (circa {TOTALE_BRANO / 1e6:.1f} milioni), uno stream alla volta come "
+       f"nella tabella; il materiale messo da parte ne ha {GRANI_DA_PARTE:,}".replace(",", " "))
+    _, brano_s, _ = il_brano()
+    gruppi = [[], []]
+    for s in brano_s:
+        gruppi[float(s["onset"]) >= RESPIRO[1] - 1e-6].append(s["stream_id"])
+    for nomi, (primo, ultimo, atteso) in zip(gruppi, GRUPPI):
         assert sum(GRANI[x] for x in nomi) == atteso, (primo, atteso)
-    ok("grani per gruppo: 4 035 501, 5 249 478 e 134 333")
+    ok("grani per gruppo: 4 035 501 e 5 249 478")
     tre = sum(GRANI[x] for x in ("stream24", "stream9", "stream27"))
-    assert tre / TOTALE > 0.60 and GRANI["stream24"] == max(GRANI.values())
-    ok(f"`stream24`, `stream9` e `stream27` hanno il {100 * tre / TOTALE:.0f}% dei grani")
+    assert tre / TOTALE_BRANO > 0.60 and GRANI["stream24"] == max(GRANI.values())
+    ok(f"`stream24`, `stream9` e `stream27` hanno il {100 * tre / TOTALE_BRANO:.0f}% dei grani del brano")
     otto = sum(GRANI[f"stream{n}"] for n in range(13, 21))
-    assert 33500 < otto < 34500
-    ok(f"da `stream13` a `stream20`: {otto} grani in tutto")
+    assert 33500 < otto < 34500 and GRANI["stream12"] == 100329 and otto + GRANI["stream12"] == GRANI_DA_PARTE
+    ok(f"materiale messo da parte: {GRANI['stream12']} grani sono di `stream12`, {otto} degli otto stream a valori predefiniti")
     assert per_stream["stream24"]["picco"] > 35000 and per_stream["stream24"]["picco"] / RIVERRUN > 15
     assert per_stream["stream24"]["picco"] == max(r["picco"] for r in risultati)
     ok(f"`stream24` arriva a {per_stream['stream24']['picco']} grani al secondo, "
@@ -382,15 +417,6 @@ def grani():
     assert per_stream["stream12"]["voci"] == 13 and per_stream["stream23"]["voci"] == 4
     assert per_stream["stream3"]["voci"] == 4 and per_stream["stream9"]["voci"] == 2
     ok("il motore prepara 13 liste di voci per `stream12` (da 1 a 12,74 voci)")
-
-
-def gruppi_per_nome():
-    _, ss = master_e_stream()
-    taglio = [b for a, b in SECONDI]
-    gruppi = [[], [], []]
-    for s in ss:
-        gruppi[sum(float(s["onset"]) >= t - 1e-6 for t in taglio)].append(s["stream_id"])
-    return gruppi
 
 
 # --- 8. realizzazioni ----------------------------------------------------------------
@@ -467,82 +493,52 @@ def testo_voci(s):
 
 
 def tabella():
-    _, ss = master_e_stream()
+    _, brano, parte = il_brano()
     testo = CAPITOLO.read_text(encoding="utf-8")
     righe = {m.group(1): [c.strip() for c in m.group(2).split("|")]
              for m in re.finditer(r"^\|\s*`(stream\d+)`\s*\|(.*)\|\s*$", testo, re.M)}
-    if righe:
-        assert set(righe) == set(GRANI), set(righe) ^ set(GRANI)
-        for s in ss:
-            atteso = [codice(os.path.splitext(s["sample"])[0]), dec(float(s["onset"])), dec(float(s["duration"])),
-                      testo_grano(s["grain"]), testo_voci(s), mig(GRANI[s["stream_id"]])]
-            assert righe[s["stream_id"]] == atteso, (s["stream_id"], righe[s["stream_id"]], atteso)
-        ordine = [m.group(1) for m in re.finditer(r"^\|\s*`(stream\d+)`", testo, re.M)]
-        assert ordine == [s["stream_id"] for s in sorted(ss, key=lambda s: (float(s["onset"]), ss.index(s)))]
-        ok("la tabella del capitolo (24 righe, in ordine di ingresso) coincide con i dati e con i grani")
-    gruppi = {m.group(1): [c.strip() for c in m.group(2).split("|")]
-              for m in re.finditer(r"^\|\s*(primo|secondo|ultimo)\s*\|(.*)\|\s*$", testo, re.M)}
-    if gruppi:
-        _, ss = master_e_stream()
-        assert list(gruppi) == ["primo", "secondo", "ultimo"]
-        for nome, nomi, (primo, ultimo, grani_g) in zip(gruppi, gruppi_per_nome(), GRUPPI):
-            membri = [s for s in ss if s["stream_id"] in nomi]
-            a, b = min(float(s["onset"]) for s in membri), max(fine(s) for s in membri)
-            assert gruppi[nome] == [f"{round(a)}–{round(b)}", str(len(membri)), mig(grani_g)], (nome, gruppi[nome])
-        ok("la tabella dei gruppi del capitolo coincide con i dati")
-    assert righe or gruppi, "il capitolo non ha una tabella degli stream ne' dei gruppi"
+    assert righe, "il capitolo non ha la tabella degli stream"
+    assert set(righe) == {s["stream_id"] for s in brano}, set(righe) ^ {s["stream_id"] for s in brano}
+    assert not set(righe) & set(DA_PARTE)
+    for s in brano:
+        atteso = [codice(os.path.splitext(s["sample"])[0]), dec(float(s["onset"])), dec(float(s["duration"])),
+                  testo_grano(s["grain"]), testo_voci(s), mig(GRANI[s["stream_id"]])]
+        assert righe[s["stream_id"]] == atteso, (s["stream_id"], righe[s["stream_id"]], atteso)
+    ordine = [m.group(1) for m in re.finditer(r"^\|\s*`(stream\d+)`", testo, re.M)]
+    assert ordine == [s["stream_id"] for s in sorted(brano, key=lambda s: (float(s["onset"]), brano.index(s)))]
+    ok("la tabella del capitolo (15 righe, in ordine di ingresso, senza il materiale messo da parte) "
+       "coincide con i dati e con i grani")
 
 
 # --- 10. il modello di costo --------------------------------------------------------------
 
 def costo():
-    master, _ = master_e_stream()
-    secondi = 34e-6 * TOTALE + 1.4e-3 * master["duration"]
+    master, brano, _ = il_brano()
+    fine_brano = max(fine(s) for s in brano)
+    secondi = 34e-6 * TOTALE_BRANO + 1.4e-3 * fine_brano
     assert 300 < secondi < 360  # «poco piu' di cinque minuti»
+    assert 300 < 34e-6 * TOTALE_MASTER + 1.4e-3 * master["duration"] < 360
     ok(f"modello di costo del capitolo 7 (34 us per grano, 1,4 ms per secondo di uscita): "
        f"{secondi / 60:.1f} minuti a un processo solo")
 
 
-# --- 11. PGE-ui e la regola del repository ---------------------------------------------------
+# --- 11. la regola del repository del brano ---------------------------------------------------
 
-def intestazioni():
-    master, _ = master_e_stream()
-    def firma(percorso):
-        testa = Path(percorso).read_text(encoding="utf-8").splitlines()[:5]
-        editor = next((r for r in testa if r.startswith("# editor:")), "")
-        salvato = next((r.split(":", 1)[1].strip() for r in testa if r.startswith("# saved:")), None)
-        return "PGE-ui" in editor, salvato
-
-    pge_ui, orari = [], []
-    for percorso in [MASTER] + sorted((MASTER.parent / "streams").glob("*.yml")):
-        e_pge, quando = firma(percorso)
-        if e_pge:
-            pge_ui.append(percorso.stem)
-            orari.append(quando)
-    assert len(pge_ui) == 10 and "mare-nostrum" in pge_ui and "stream3" not in pge_ui and "stream9" not in pge_ui
-    assert min(orari) >= "2026-10-21T20:00" and max(orari) <= "2026-10-22T00:30", (min(orari), max(orari))
-    ok("il master e nove file portano la firma di PGE-ui, salvati fra le 22:23 del 21 e le 2:08 del 22 ottobre (ora italiana)")
-    # la regola del repository del brano (tests/test_brano.py): ogni voce del master e' un `file:`
-    assert any("file" not in v for v in master["streams"])
-    ok("il master ha stream scritti dentro: la regola «un file per stream» del repository del brano non e' rispettata")
-
-
-def stato_precedente():
-    try:
-        vecchio = subprocess.run(["git", "-C", str(BRANO), "show", "1979ce1^:configs/mare-nostrum.yml"],
-                                 capture_output=True, text=True, check=True).stdout
-    except (OSError, subprocess.CalledProcessError):
-        print("saltato: la storia del repository del brano non e' disponibile")
-        return
-    m = yaml.safe_load(vecchio)
-    assert m["duration"] == 322.074 and len(m["streams"]) == 10
-    assert sum(bool(v.get("mute")) for v in m["streams"]) == 2 and all("file" in v for v in m["streams"])
-    ok("lo stato precedente del repository: dieci stream, due silenziati, 322,074 s")
+def regola_un_file_per_stream():
+    master, brano, parte = il_brano()
+    testa = MASTER.read_text(encoding="utf-8").splitlines()[:5]
+    assert any(r.startswith("# editor:") and "PGE-ui" in r for r in testa)
+    # la regola (tests/test_brano.py): ogni voce del master e' un `file:`
+    dentro = [v["stream_id"] for v in master["streams"] if "file" not in v]
+    assert len(dentro) == 13
+    assert sorted(set(dentro) - set(DA_PARTE)) == ["stream21", "stream22", "stream23", "stream24"]
+    assert len(set(dentro) & set(DA_PARTE)) == 9
+    ok("il master, salvato da PGE-ui, ha tredici stream scritti dentro (quattro del brano, nove messi da parte): "
+       "la regola «un file per stream» del repository del brano non e' rispettata")
 
 
 if __name__ == "__main__":
-    for prova in (testa_e_stream, profilo, campioni, copie_e_famiglia, vocabolari, predefiniti, grani,
-                  realizzazioni, stream21_e_voce_sola, stream_minimo, tabella, costo, intestazioni,
-                  stato_precedente):
+    for prova in (testa_e_stream, profilo, campioni, copie_e_famiglia, vocabolari, materiale_da_parte, grani,
+                  realizzazioni, stream21_e_voce_sola, stream_minimo, tabella, costo, regola_un_file_per_stream):
         prova()
     print("\ntutte le verifiche passano")
