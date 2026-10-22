@@ -8,7 +8,7 @@ La sintesi granulare costruisce il suono con migliaia di eventi brevi al secondo
 
 Le ragioni per cui l'ho fatto così sono tre.
 
-La prima è il tempo differito. Volevo comporre e indagare gli aspetti della granulazione potendo contare su molto più calcolo di quello che la granulazione in tempo reale offre: in tempo reale la densità dei grani, il numero delle voci e la complessità del suono sono limitati dal budget di calcolo di ogni istante, in tempo differito il solo limite è il tempo che si è disposti ad attendere. È una posizione poco consueta, e Risset l'ha argomentata con chiarezza: il livello di complessità sonora che un sistema digitale raggiunge in tempo reale è sempre limitato, e il compositore non ha la libertà di sceglierlo [@Risset1999, p. 33]. La scala che il tempo differito consente si misura. Nel 1986 Truax raggiungeva in *Riverrun* una densità massima di 2 375 grani al secondo [@Truax1988, p. 25]. Lo schizzo di *mare-nostrum*, descritto nel capitolo 10, ha circa 3,3 milioni di grani, e due dei suoi stream partono oltre i 4 000 grani al secondo.
+La prima è il tempo differito. Volevo comporre e indagare gli aspetti della granulazione potendo contare su molto più calcolo di quello che la granulazione in tempo reale offre: in tempo reale la densità dei grani, il numero delle voci e la complessità del suono sono limitati dal budget di calcolo di ogni istante, in tempo differito il solo limite è il tempo che si è disposti ad attendere. È una posizione poco consueta, e Risset l'ha argomentata con chiarezza: il livello di complessità sonora che un sistema digitale raggiunge in tempo reale è sempre limitato, e il compositore non ha la libertà di sceglierlo [@Risset1999, p. 33]. La scala che il tempo differito consente si misura. Nel 1986 Truax raggiungeva in *Riverrun* una densità massima di 2 375 grani al secondo [@Truax1988, p. 25]. Lo schizzo di *mare-nostrum*, descritto nel capitolo 10, ha circa 9,4 milioni di grani, e uno dei suoi stream, `stream24`, ne emette oltre 35 000 al secondo, più di quindici volte il massimo di *Riverrun*.
 
 La seconda è la riproducibilità e il versionamento. Una composizione scritta come testo si versiona con *git*, che diventa la documentazione del processo compositivo: ogni modifica è confrontabile con la precedente, e si può tornare a un qualsiasi stato. Il seme dei processi casuali è una chiave della specifica, e dichiararlo rende la realizzazione identica a ogni esecuzione, a parità di renderer. La specifica, non l'audio, è dunque il documento che si conserva: il rendering si rigenera da essa.
 
@@ -26,7 +26,7 @@ PGE conserva il lessico e la struttura di controllo. Ogni parametro è un valore
 |---|---|---|
 | tempo | reale | differito |
 | grano più breve | 8 ms | un campione |
-| densità massima | 2 500 grani/s con venti voci | nessun tetto dichiarato (nello schizzo, oltre 4 000 grani/s per stream) |
+| densità massima | 2 500 grani/s con venti voci | nessun tetto dichiarato (nello schizzo, oltre 35 000 grani/s in un solo stream) |
 | voci | 20, 8 o 20, per modello | da 1 a 256 per stream, anche frazionarie, e un numero qualsiasi di stream |
 | materiale campionato | 4 032 campioni, circa 150-170 ms | file di qualsiasi durata |
 | controllo | comandi da tastiera, preset, rampe, maschere | un documento di testo |
