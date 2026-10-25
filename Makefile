@@ -1,4 +1,4 @@
-PDF  = tesina.pdf
+PDF  = de_mattia_COME02-II-26_10_2026.pdf
 SRC  = $(wildcard docs/sezioni/*.md) $(wildcard docs/*.bib) metadata.yaml styles/config.yml
 
 .PHONY: pdf open clean
