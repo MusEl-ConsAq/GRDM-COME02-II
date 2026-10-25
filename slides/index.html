@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <title>Python Granular Engine — Composizione Elettroacustica II</title>
+  <link rel="stylesheet" href="vendor/reveal/dist/reset.css">
+  <link rel="stylesheet" href="vendor/reveal/dist/reveal.css">
+  <link rel="stylesheet" href="vendor/reveal/dist/theme/white.css">
+  <link rel="stylesheet" href="vendor/reveal/plugin/highlight/monokai.css">
+  <style>
+    .reveal h1, .reveal h2, .reveal h3 { text-transform: none; }
+    .reveal h3 { font-size: 1.3em; }
+    .reveal .r-hstack { gap: 24px; align-items: flex-start; }
+    .reveal .r-hstack:has(pre) { align-items: center; }
+    .reveal pre { width: auto; margin: 0; font-size: 0.42em; }
+    /* altezze in px della slide (1280x720, scalata da reveal), mai in vh: il
+       vh segue la finestra e a schermo intero spinge fuori il player. */
+    .reveal pre code { max-height: 440px; }
+    .reveal img.map { max-height: 440px; margin: 0; }
+    .reveal img.stack { max-height: 215px; margin: 0; }
+    .reveal audio { height: 36px; }
+    .reveal .todo { color: #b00; font-size: 0.55em; border: 2px dashed #b00; padding: 12px 20px; }
+    .reveal .small { font-size: 0.55em; }
+    .reveal svg.diagram { width: 100%; max-height: 460px; }
+    .reveal .eq { font-family: "Times New Roman", Times, serif; font-size: 0.6em; margin: 28px 0 0; text-align: left; }
+    .reveal .eq p { margin: 2px 0; }
+    .reveal .eq i { font-style: italic; }
+    .reveal .eq b { font-weight: 700; }
+    .reveal .eq-note { display: block; font-family: inherit; font-size: 0.7em; color: #555; }
+    .reveal .eq-label { display: inline-block; width: 4em; font-family: "Source Sans Pro", Helvetica, sans-serif;
+                        font-size: 0.75em; color: #555; text-align: left; margin-right: 0.3em; }
+    .reveal .eq .g { background: #222; color: #fff; padding: 0 4px; border-radius: 3px; }
+    .reveal .big { font-size: 2.4em; font-weight: 700; margin: 0; }
+    .reveal .term { width: 100%; background: #111; }
+    .reveal .playhead { position: relative; display: inline-block; line-height: 0; }
+    .reveal .playhead .cursor { position: absolute; width: 2px; background: #d00; pointer-events: none; }
+    .reveal .sco-window { height: 140px; width: 100%; object-fit: cover; object-position: left top; background: #111; margin-top: 8px; }
+    /* slide ancorata in alto invece che centrata: reveal scrive top inline */
+    .reveal .slides section.top { top: 0 !important; }
+    .reveal table.cmp { font-size: 0.5em; margin: 24px auto 0; }
+    .reveal table.cmp th, .reveal table.cmp td { padding: 8px 18px; }
+    .reveal ul.list { font-size: 0.68em; line-height: 1.5; }
+    .reveal .num { font-size: 0.6em; color: #555; margin: 12px 0 0; }
+    .reveal .eq.right { font-size: 0.55em; }
+  </style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+<!-- Scaletta: 10 slide, circa 9:30 con gli ascolti; R1-R3 di riserva per le domande. -->
+  <!-- 1 · Titolo · 0:15 -->
+  <section>
+    <h2>Python Granular Engine</h2>
+    <p>uno strumento per la sintesi granulare in Python<br>e il brano <i>mare-nostrum</i></p>
+    <p class="small">Giulio Romano De Mattia — Conservatorio «A. Casella», L'Aquila<br>
+      Esame di Composizione Elettroacustica II · 26 ottobre 2026</p>
+    <p class="small">github.com/DMGiulioRomano/PythonGranularEngine ·
+      doi.org/10.5281/zenodo.22996019</p>
+    <aside class="notes">
+      Buongiorno. Presento Python Granular Engine, lo strumento per la sintesi granulare che ho scritto in Python
+      e con cui sto componendo, e il brano in cui lo uso, mare-nostrum.
+    </aside>
+  </section>
+  <!-- 2 · Il problema · 0:50 · cap. 1 -->
+  <section>
+    <h3>Dalla scheda perforata alla specifica</h3>
+    <div class="r-hstack" style="justify-content: center; gap: 80px">
+      <div>
+        <p class="big">800</p>
+        <p class="small">schede perforate per 30 s di suono<br>Roads, <i>Klang-1</i>, 1974</p>
+      </div>
+      <div>
+        <p class="big">2 375</p>
+        <p class="small">grani/s, massimo di <i>Riverrun</i><br>Truax, 1986, tempo reale</p>
+      </div>
+      <div>
+        <p class="big">35 000</p>
+        <p class="small">grani/s, <code>stream24</code> di <i>mare-nostrum</i><br>tempo differito</p>
+      </div>
+    </div>
+    <ul class="list" style="margin-top: 48px">
+      <li><b>tempo differito</b>: il limite è il tempo che si è disposti ad attendere</li>
+      <li><b>riproducibilità</b>: la specifica con il seme si versiona, l'audio si rigenera</li>
+      <li><b>didattica</b>: i parametri hanno i nomi di Roads e di Truax</li>
+    </ul>
+    <aside class="notes">
+      La sintesi granulare costruisce il suono con migliaia di eventi al secondo, e nessuno li scrive uno per uno.
+      Nel 1974 Roads batteva ogni grano su una scheda perforata: ottocento schede per trenta secondi di suono.
+      La storia della tecnica è la storia degli strumenti per descrivere popolazioni di grani, e PGE sta in questa linea.
+      L'ho scritto per tre ragioni.
+      La prima è il tempo differito: in tempo reale densità e voci sono limitate dal calcolo di ogni istante.
+      Truax in Riverrun arrivava a 2 375 grani al secondo; uno stream del mio brano ne emette 35 000.
+      La seconda è la riproducibilità: il brano è un testo con un seme, si versiona e l'audio si rigenera.
+      La terza è la didattica: i parametri hanno i nomi di Roads e di Truax.
+    </aside>
+  </section>
+  <!-- 3 · Il modello · 0:50 · cap. 1 -->
+  <section>
+    <h3>Il modello: Truax e il DMX-1000</h3>
+    <p class="small">parametro = valore centrale nel tempo + banda di variazione: la maschera di tendenza</p>
+    <table class="cmp">
+      <thead><tr><th></th><th>DMX-1000 (Truax 1988)</th><th>PGE</th></tr></thead>
+      <tbody>
+        <tr><td>tempo</td><td>reale</td><td>differito</td></tr>
+        <tr><td>grano più breve</td><td>8 ms</td><td>un campione</td></tr>
+        <tr><td>densità massima</td><td>2 500 grani/s</td><td>nessun tetto (35 000 in uno stream)</td></tr>
+        <tr><td>materiale</td><td>4 032 campioni, ~150 ms</td><td>file di qualsiasi durata</td></tr>
+        <tr><td>controllo</td><td>tastiera, preset, rampe, maschere</td><td>un documento di testo</td></tr>
+        <tr><td>visualizzazione</td><td>maschere su un terminale</td><td>la MAP dei grani generati</td></tr>
+      </tbody>
+    </table>
+    <aside class="notes">
+      Il modello è il sistema che Truax costruisce sul DMX-1000 a metà degli anni Ottanta.
+      Ne conservo il lessico e il controllo: ogni parametro è un valore centrale che varia nel tempo,
+      più una banda da cui ogni grano estrae il proprio valore. È la maschera di tendenza.
+      Lo scostamento nel campione diventa il puntatore, le venti voci diventano le voci di uno stream.
+      Cambia il tempo, e cadono i limiti dell'hardware: il grano più breve passa da 8 millisecondi a un campione,
+      il materiale da 150 millisecondi a un file qualsiasi.
+      E cambia il controllo. Truax genera i grani in tempo reale perché le partiture erano ingestibili;
+      io la lista dei grani la tengo, ma scrivo solo la specifica, e la lista la guardo con la MAP.
+    </aside>
+  </section>
+  <!-- 4 · L'ambiente · 1:00 · cap. 3, riuso dal CIM -->
+  <section>
+    <h3>L'ambiente</h3>
+    <svg class="diagram" viewBox="0 0 1200 470" role="img"
+         aria-label="Pipeline: specifica YAML, rappresentazione intermedia (stream che contiene i grani), back-end audio, export e MAP">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+        </marker>
+      </defs>
+      <g font-family="Source Sans Pro, Helvetica, sans-serif" fill="#222">
+        <!-- YAML -->
+        <rect x="10" y="165" width="190" height="130" rx="8" fill="#fff" stroke="#222" stroke-width="2.5"/>
+        <text x="105" y="222" font-size="30" font-weight="700" text-anchor="middle">YAML</text>
+        <text x="105" y="256" font-size="20" text-anchor="middle">specifica</text>
+        <text x="105" y="330" font-size="19" font-style="italic" text-anchor="middle">prescrittiva</text>
+
+        <line x1="200" y1="230" x2="262" y2="230" stroke="#222" stroke-width="2.5" marker-end="url(#arr)"/>
+
+        <!-- Rappresentazione intermedia -->
+        <text x="480" y="52" font-size="22" font-weight="700" text-anchor="middle">rappresentazione intermedia</text>
+        <rect x="265" y="68" width="430" height="324" rx="10" fill="#f2f2f2" stroke="#222" stroke-width="2.5"/>
+        <text x="290" y="108" font-size="24" font-weight="700">stream</text>
+        <text x="290" y="140" font-size="19">inviluppi · strategie · voci · seed</text>
+        <rect x="290" y="165" width="380" height="200" rx="8" fill="#fff" stroke="#222" stroke-width="2" stroke-dasharray="7 5"/>
+        <text x="310" y="200" font-size="22" font-weight="700">grani</text>
+        <text x="310" y="228" font-size="17">onset · durata · lettura · pitch</text>
+        <text x="310" y="250" font-size="17">pan · finestra · verso</text>
+        <!-- una popolazione di grani: finestre di Hann -->
+        <g fill="#444" id="grains" transform="translate(0,12)">
+          <path d="M310,300 q15,-60 30,0 z"/><path d="M332,300 q15,-60 30,0 z"/><path d="M354,300 q15,-60 30,0 z"/>
+          <path d="M392,330 q10,-40 20,0 z"/><path d="M404,300 q10,-40 20,0 z"/><path d="M420,315 q10,-40 20,0 z"/>
+          <path d="M440,290 q12,-50 24,0 z"/><path d="M455,335 q12,-50 24,0 z"/><path d="M475,305 q12,-50 24,0 z"/>
+          <path d="M500,280 q8,-30 16,0 z"/><path d="M512,345 q8,-30 16,0 z"/><path d="M522,300 q8,-30 16,0 z"/>
+          <path d="M536,325 q8,-30 16,0 z"/><path d="M548,270 q8,-30 16,0 z"/><path d="M560,340 q8,-30 16,0 z"/>
+          <path d="M574,295 q8,-30 16,0 z"/><path d="M588,320 q8,-30 16,0 z"/><path d="M600,280 q8,-30 16,0 z"/>
+          <path d="M614,335 q8,-30 16,0 z"/><path d="M628,300 q8,-30 16,0 z"/><path d="M642,325 q8,-30 16,0 z"/>
+        </g>
+
+        <!-- rami -->
+        <line x1="695" y1="230" x2="760" y2="230" stroke="#222" stroke-width="2.5"/>
+        <line x1="760" y1="95" x2="760" y2="385" stroke="#222" stroke-width="2.5"/>
+        <line x1="760" y1="95" x2="815" y2="95" stroke="#222" stroke-width="2.5" marker-end="url(#arr)"/>
+        <line x1="760" y1="240" x2="815" y2="240" stroke="#222" stroke-width="2.5" marker-end="url(#arr)"/>
+        <line x1="760" y1="385" x2="815" y2="385" stroke="#222" stroke-width="2.5" marker-end="url(#arr)"/>
+
+        <rect x="818" y="40" width="372" height="110" rx="8" fill="#fff" stroke="#222" stroke-width="2"/>
+        <text x="838" y="80" font-size="22" font-weight="700">back-end audio</text>
+        <text x="838" y="112" font-size="18">NumPy (interno)</text>
+        <text x="838" y="136" font-size="18">Csound .sco · SuperCollider .osc</text>
+
+        <rect x="818" y="185" width="372" height="110" rx="8" fill="#fff" stroke="#222" stroke-width="2"/>
+        <text x="838" y="225" font-size="22" font-weight="700">export</text>
+        <text x="838" y="257" font-size="18">Reaper .rpp · Sonic Visualiser .sv</text>
+        <text x="838" y="281" font-size="18">JSON</text>
+
+        <rect x="818" y="330" width="372" height="110" rx="8" fill="#222" stroke="#222" stroke-width="2"/>
+        <text x="838" y="372" font-size="24" font-weight="700" fill="#fff">MAP</text>
+        <text x="838" y="402" font-size="18" fill="#fff">Multiparametric Audio Plot</text>
+        <text x="838" y="426" font-size="18" font-style="italic" fill="#fff">descrittiva</text>
+      </g>
+    </svg>
+    <p class="small">notazione prescrittiva e descrittiva nel senso di Seeger (1958)</p>
+    <aside class="notes">
+      Il disegno ruota attorno a una scelta: il motore non produce suono, produce una lista di grani.
+      Come in un compilatore, lo YAML diventa una rappresentazione intermedia che non sa chi la userà.
+      Il grano è un dato immutabile di otto numeri: onset, durata, posizione di lettura, altezza, volume, pan,
+      e due indici per campione e finestra.
+      Da lì partono tre renderer, NumPy, Csound e SuperCollider, poi la MAP e gli export per Reaper e Sonic Visualiser.
+      I tre renderer servono a rendere il rendering verificabile: ricevono la stessa lista, e se divergono l'errore è nel DSP.
+      La casualità sta tutta nella generazione, con un generatore per componente derivato dal seme.
+      Così uno stream messo in solo suona esattamente come nel mix.
+    </aside>
+  </section>
+  <!-- 5 · Deviazione · 1:20 · cap. 4-5, riuso dal CIM -->
+  <section class="top">
+    <h3>Ampiezza e probabilità della deviazione</h3>
+    <div class="r-hstack">
+      <div style="width: 34%">
+      <pre style="font-size: 0.34em"><code class="language-yaml" data-trim>
+    # comuni ad (a) e (b)
+    duration: 12.0
+    sample: "voice.wav"
+    time_mode: normalized
+      </code></pre>
+      <p class="small" style="margin: 8px 0 0; text-align: left">(a)</p>
+      <pre style="font-size: 0.34em"><code class="language-yaml" data-trim>
+    - stream_id: "mask_range"
+      pointer:
+        start: 0.5
+        loop_unit: normalized
+        speed_ratio: 0.0
+        offset_range: [[0, 0.0], [1, 0.35]]
+      </code></pre>
+      <div class="eq" style="font-size: 0.42em; margin-top: 8px">
+        <p><span class="eq-label"></span> <i>v<sub>n</sub></i> = <i>c</i>(<i>τ<sub>n</sub></i>) + <i>ξ<sub>n</sub></i> <i>ρ</i>(<i>τ<sub>n</sub></i>),&ensp; <i>ξ<sub>n</sub></i> ∼ 𝒰(−½, ½)</p>
+      </div>
+      <audio controls src="media/deviation__mask_range.mp3"></audio>
+      <p class="small" style="margin: 8px 0 0; text-align: left">(b)</p>
+      <pre style="font-size: 0.34em"><code class="language-yaml" data-trim>
+    - stream_id: "mask_probability"
+      deviation_probability:
+        pointer: [[0, 0], [1, 100]]
+      pointer:
+        start: 0.5
+        loop_unit: normalized
+        speed_ratio: 0.0
+        offset_range: 0.35
+      </code></pre>
+      <div class="eq" style="font-size: 0.42em; margin-top: 8px">
+        <p><span class="eq-label">gate</span> <i>v<sub>n</sub></i> = <i>c</i>(<i>τ<sub>n</sub></i>) + <b class="g"><i>g<sub>n</sub></i></b> <i>ξ<sub>n</sub></i> <i>ρ</i>(<i>τ<sub>n</sub></i>),&ensp; <b class="g"><i>g<sub>n</sub></i></b> ∼ Bernoulli(<i>p</i>(<i>τ<sub>n</sub></i>))</p>
+      </div>
+      <audio controls src="media/deviation__mask_probability.mp3"></audio>
+      </div>
+      <div class="playhead" style="width: 64%" data-axes="20.45 99.20 4.02 49.46; 20.45 99.20 49.46 94.95">
+        <img class="map" style="width: 100%; max-height: 620px" data-preview-image="media/deviation_annotated.png" data-preview-fit="contain" data-src="media/deviation_annotated.png" alt="MAP di deviation, pannelli a e b">
+      </div>
+    </div>
+    <aside class="notes">
+      Vediamo il linguaggio in un caso solo, che mostra anche la MAP.
+      In verticale c'è il file sorgente, in orizzontale il tempo.
+      Ogni grano sta nel punto del buffer da cui è letto, è largo quanto dura ed è colorato secondo la trasposizione.
+      I due stream leggono fermi a metà del buffer.
+      In (a) cresce l'ampiezza della deviazione, fino al 35% del buffer, e la nuvola si apre a cuneo.
+      In (b) l'ampiezza è fissa e cresce la probabilità che un grano devii: la linea diventa nuvola.
+      È il secondo asse che ho aggiunto alla maschera di Truax. Ascoltiamo.
+      [audio a, audio b]
+      La MAP mostra ciò che è uscito davvero, prima di riascoltare.
+      Una chiave scritta male, che il motore ignora, si riconosce perché l'effetto non c'è.
+    </aside>
+  </section>
+  <!-- 6 · mare-nostrum, poetica · 1:00 · cap. 10 -->
+  <section>
+    <h3><i>mare-nostrum</i>: il mare e l'indifferenza</h3>
+    <ul class="list" style="margin-top: 32px">
+      <li>nove campioni di pianti di bambini, granulati fino a diventare mare</li>
+      <li>il pianto affiora dalle onde, fino a un coro di persone morte</li>
+      <li>non rappresentare l'indifferenza: romperla</li>
+    </ul>
+    <p class="small" style="margin-top: 40px">9 min 41 s · otto altoparlanti attorno al pubblico</p>
+    <!-- ponytail: segnaposto finché manca l'estratto; togliere il box quando il file c'è -->
+    <p class="todo">inserire <code>media/mare-nostrum_inizio.mp3</code> (inizio del brano)</p>
+    <audio controls src="media/mare-nostrum_inizio.mp3"></audio>
+    <aside class="notes">
+      PGE è nato per comporre, e il brano è mare-nostrum.
+      Il materiale sono pianti di bambini, nove campioni trovati in rete, che la granulazione trasforma in suono di mare.
+      Il brano parla dell'indifferenza di chi riposa al mare mentre, dall'altra parte dello stesso mare, muoiono dei bambini.
+      Parla anche delle scelte politiche di cui ci si disinteressa e che portano alla morte di migliaia di persone.
+      Non vuole rappresentare l'indifferenza: vuole romperla.
+      La drammaturgia è nella materia stessa. Per un tratto chi ascolta può prendere il suono per un mare qualunque,
+      poi il pianto affiora dalle onde, fino a un coro di persone morte.
+      [ascolto: inizio del brano]
+    </aside>
+  </section>
+  <!-- 7 · Struttura · 1:10 · cap. 10 -->
+  <section class="top">
+    <h3>La struttura del brano</h3>
+    <img src="media/mare-nostrum_disposizione.png" alt="Disposizione dei sedici stream di mare-nostrum nel tempo" style="width: 100%; margin: 0">
+    <p class="num">16 stream · 581 s · 9 495 350 grani · seme 1441 · un master che importa ogni stream con <code>file:</code></p>
+    <aside class="notes">
+      Il brano è un master YAML, con il seme 1441, che dispone nel tempo sedici stream, ciascuno in un proprio file.
+      Il master tiene il piazzamento, il file tiene il suono.
+      Il brano dura 581 secondi e conta circa nove milioni e mezzo di grani.
+      Ha due gruppi. Nel primo, fino a 278 secondi, entrano uno dopo l'altro nove stream, fino a sette sovrapposti,
+      e poi escono fino a lasciarne uno.
+      Dopo un respiro di meno di un secondo comincia il secondo gruppo, più rado.
+      Si apre con il solo stream24 per oltre un minuto, e fra 414 e 440 secondi riprende tre stream del primo.
+      [DA COMPLETARE: perché la forma è così.]
+      Un effetto del seme: l'identità dello stream è il nome del suo file, quindi rinominarlo cambia il suono.
+    </aside>
+  </section>
+  <!-- 8 · Dal mare al coro · 1:10 · cap. 2, 10 -->
+  <section class="top">
+    <h3>Dal mare al coro: la durata del grano</h3>
+    <svg class="diagram" viewBox="0 0 1200 390" role="img"
+         aria-label="Durate dei grani di mare-nostrum su asse logaritmico, con le soglie di Roads a 40 ms e di Truax a 50 ms">
+      <g font-family="Source Sans Pro, Helvetica, sans-serif" fill="#222">
+        <rect x="80" y="60" width="630" height="240" fill="#f2f2f2"/>
+        <line x1="699" y1="40" x2="699" y2="300" stroke="#222" stroke-width="2" stroke-dasharray="7 5"/>
+        <line x1="722" y1="40" x2="722" y2="300" stroke="#222" stroke-width="2" stroke-dasharray="7 5"/>
+        <text x="692" y="34" font-size="19" text-anchor="end">40 ms, Roads</text>
+        <text x="729" y="34" font-size="19">50 ms, Truax</text>
+        <!-- stream -->
+        <rect x="76" y="200" width="10" height="34" fill="#444"/>
+        <text x="76" y="188" font-size="21" font-weight="700">stream24</text>
+        <text x="76" y="262" font-size="18">0,1 ms · 35 000 grani/s</text>
+        <rect x="318" y="200" width="238" height="34" fill="#444"/>
+        <text x="437" y="188" font-size="21" font-weight="700" text-anchor="middle">12 stream: il mare</text>
+        <text x="437" y="262" font-size="18" text-anchor="middle">1–10 ms · fill factor 4</text>
+        <rect x="1031" y="200" width="114" height="34" fill="#222"/>
+        <text x="1150" y="188" font-size="21" font-weight="700" text-anchor="end">stream22-23: il coro</text>
+        <text x="1150" y="262" font-size="18" text-anchor="end">1–3 s · frammenti</text>
+        <!-- asse -->
+        <line x1="70" y1="300" x2="1160" y2="300" stroke="#222" stroke-width="2.5"/>
+        <g font-size="19" text-anchor="middle">
+          <line x1="80" y1="300" x2="80" y2="310" stroke="#222" stroke-width="2"/><text x="80" y="334">0,1 ms</text>
+          <line x1="318" y1="300" x2="318" y2="310" stroke="#222" stroke-width="2"/><text x="318" y="334">1 ms</text>
+          <line x1="556" y1="300" x2="556" y2="310" stroke="#222" stroke-width="2"/><text x="556" y="334">10 ms</text>
+          <line x1="793" y1="300" x2="793" y2="310" stroke="#222" stroke-width="2"/><text x="793" y="334">100 ms</text>
+          <line x1="1031" y1="300" x2="1031" y2="310" stroke="#222" stroke-width="2"/><text x="1031" y="334">1 s</text>
+        </g>
+        <text x="690" y="376" font-size="19" font-style="italic" text-anchor="end">fusione: il pianto diventa tessitura</text>
+        <text x="730" y="376" font-size="19" font-style="italic">timbro della sorgente: il pianto si riconosce</text>
+      </g>
+    </svg>
+    <p class="small" style="margin: 0">coro (<code>stream23</code>): grani di 3 s, ratio 0,3, quattro voci su 38 quarti di tono, da 424 s alla fine</p>
+    <p class="todo">inserire <code>media/mare-nostrum_coro.mp3</code> (da 424 s)</p>
+    <audio controls src="media/mare-nostrum_coro.mp3"></audio>
+    <aside class="notes">
+      Dal mare al coro la variabile principale è la durata del grano.
+      Sotto i 40 millisecondi, dice Roads, un suono campionato perde le qualità riconoscibili; Truax mette la soglia a 50.
+      Il vocabolario principale del brano sta fra uno e dieci millisecondi, con fattore di riempimento 4 e un puntatore lentissimo.
+      Lì il pianto si fonde in una tessitura continua, il mare.
+      stream24 scende a un decimo di millisecondo, cinque campioni, ed è il più denso.
+      Poi stream22 e stream23 salgono a grani da uno a tre secondi: non più particelle, ma frammenti.
+      Il coro è stream23: lo stesso pianto trasposto verso il grave, in quattro voci su 38 quarti di tono,
+      con densità e volume disegnati come onde.
+      [ascolto: coro, da 424 s]
+    </aside>
+  </section>
+  <!-- 9 · Spazializzazione · 1:00 · cap. 11 -->
+  <section class="top">
+    <h3>Otto altoparlanti: Mid-Side</h3>
+    <div class="r-hstack">
+      <img src="media/spazializzazione_decoder.png" alt="Profili polari e guadagni di otto altoparlanti per una sorgente a 30 gradi" style="width: 62%; margin: 0">
+      <div class="eq right" style="width: 36%">
+        <p><span class="eq-label">Blumlein</span> <i>M</i> = <i>s</i> cos <i>θ</i>,&ensp; <i>S</i> = <i>s</i> sin <i>θ</i></p>
+        <p><span class="eq-label">Gerzon</span> <i>W</i> = <i>s</i></p>
+        <p style="margin-top: 24px"><span class="eq-label">decoder</span> <i>g<sub>k</sub></i> = <i>s</i>/<i>N</i> · (1 + 2 cos(<i>θ</i> − <i>φ<sub>k</sub></i>))</p>
+        <p><span class="eq-label"></span> <i>N</i> = 8,&ensp; <i>φ<sub>k</sub></i> = 45° · <i>k</i></p>
+        <p style="margin-top: 24px"><span class="eq-label"></span> Σ <i>g<sub>k</sub></i> = <i>s</i>,&ensp; Σ <i>g<sub>k</sub></i>² = 3<i>s</i>²/<i>N</i></p>
+        <p style="margin-top: 32px">file a tre canali <i>W M S</i>,<br>decodificato in sala
+          <span class="eq-note">formato e decoder da scrivere</span></p>
+      </div>
+    </div>
+    <aside class="notes">
+      Il brano è pensato per otto altoparlanti in cerchio attorno al pubblico, ma oggi i renderer sono stereo.
+      Il grano però non porta due guadagni, porta un angolo.
+      È la codifica Mid-Side di Blumlein: dall'angolo si ricavano mid e side, s per coseno e s per seno,
+      e Gerzon aggiunge un canale omnidirezionale, W.
+      Il renderer stereo calcola già mid e side e li ruota in sinistra e destra, quindi fa già una decodifica a due altoparlanti.
+      Per otto altoparlanti si dà a ciascuno un microfono virtuale puntato verso di lui, con il nucleo di Gerzon uno più due coseno.
+      La somma dei guadagni è uno, e il livello non cambia quando la sorgente gira.
+      Il file avrà tre canali e sarà decodificato in sala. Il formato e il decoder sono ancora da scrivere.
+    </aside>
+  </section>
+  <!-- 10 · Limiti e sviluppi · 0:50 · cap. 98 -->
+  <section>
+    <h3>Limiti e sviluppi</h3>
+    <div class="r-hstack" style="align-items: center">
+      <ul class="list" style="width: 62%">
+        <li>un solo file per stream, un solo livello di granulazione</li>
+        <li>il materiale governato per posizione, non per contenuto</li>
+        <li>renderer ancora stereo</li>
+        <li>nessuno, oltre all'autore, ha usato lo strumento</li>
+        <li style="margin-top: 24px; list-style: none">→ granulazione annidata, più sorgenti per stream</li>
+        <li style="list-style: none">→ PGE-ui: una timeline che modifica lo YAML, non l'audio</li>
+      </ul>
+      <div style="width: 34%">
+        <img src="qr_repo.svg" alt="QR al repository PythonGranularEngine" style="width: 300px; margin: 0">
+        <p class="small">doi.org/10.5281/zenodo.22996019</p>
+      </div>
+    </div>
+    <aside class="notes">
+      I limiti li ha resi concreti il brano.
+      Il coro mostra il primo: uno stream attinge a un solo file e la granulazione ha un solo livello.
+      Così, con grani di secondi, il frammento si riconosce come registrazione e la magia della granulazione fine si rompe.
+      Poi lo strumento governa il materiale per posizione di lettura e non per contenuto: non sa nulla del timbro.
+      E nessuno oltre a me l'ha usato.
+      La direzione per la tesi è la granulazione annidata: frammenti lunghi, scelti da più sorgenti, granulati a loro volta al loro interno.
+      Accanto c'è PGE-ui, un'interfaccia con timeline che non modifica l'audio ma lo YAML, così la specifica resta l'unico documento.
+      Grazie.
+    </aside>
+  </section>
+  <!-- R1 · Riserva: metodo · cap. 9 -->
+  <section>
+    <h3>Riserva: il metodo</h3>
+    <ul class="list">
+      <li>dicembre 2025 – ottobre 2026: 1 321 commit, 30 versioni, fino alla 9.1.0</li>
+      <li>~26 400 righe di codice, ~86 800 di test, ~8 450 test eseguiti</li>
+      <li>test che trasformano in errore le convenzioni (Csound in un solo modulo)</li>
+      <li>documentazione Diátaxis verificata da <code>make docs-lint</code></li>
+      <li>sviluppo con Claude Code: 682 commit su 1 321</li>
+      <li>PGE-ls: language server per VSCode e Neovim</li>
+      <li>costo del rendering: <i>t</i> = <i>a N</i> + <i>b D</i>, <i>a</i> ≈ 34 µs/grano, <i>b</i> ≈ 1,4 ms/s</li>
+    </ul>
+    <aside class="notes">
+      Slide di riserva per le domande sul metodo di sviluppo e sul costo del rendering.
+      Per mare-nostrum il modello prevede poco più di cinque minuti di rendering: è una stima, non una misura.
+    </aside>
+  </section>
+  <!-- R2 · Riserva: i sedici stream · cap. 10 -->
+  <section>
+    <h3>Riserva: i sedici stream</h3>
+    <table class="cmp" style="font-size: 0.36em; margin-top: 8px">
+      <thead><tr><th>stream</th><th>campione</th><th>onset (s)</th><th>durata (s)</th><th>grano</th><th>voci</th><th>grani</th></tr></thead>
+      <tbody>
+        <tr><td>stream2</td><td>001-41</td><td>0,0</td><td>178,5</td><td>1–9 ms</td><td>1</td><td>304 042</td></tr>
+        <tr><td>stream3</td><td>001-47</td><td>0,2</td><td>249,2</td><td>0,8–8,4 ms</td><td>4</td><td>1 499 017</td></tr>
+        <tr><td>stream9</td><td>001-47</td><td>11,1</td><td>249,2</td><td>0,4–11 ms</td><td>2</td><td>1 524 526</td></tr>
+        <tr><td>stream5</td><td>001-18</td><td>43,8</td><td>81,5</td><td>1,1–4,1 ms</td><td>1</td><td>112 093</td></tr>
+        <tr><td>stream6</td><td>001-3</td><td>56,7</td><td>55,4</td><td>1–5 ms</td><td>1</td><td>170 570</td></tr>
+        <tr><td>stream10</td><td>001-41</td><td>107,0</td><td>146,2</td><td>1–8 ms</td><td>4</td><td>633 356</td></tr>
+        <tr><td>stream7</td><td>001-65</td><td>112,0</td><td>26,4</td><td>1–18 ms</td><td>1</td><td>34 053</td></tr>
+        <tr><td>stream6-2</td><td>001-3</td><td>116,9</td><td>33,0</td><td>1 ms</td><td>1</td><td>131 601</td></tr>
+        <tr><td>stream8</td><td>001-3</td><td>146,0</td><td>131,8</td><td>1–11 ms</td><td>1</td><td>190 663</td></tr>
+        <tr><td>stream24</td><td>016</td><td>278,6</td><td>87,4</td><td>0,1 ms</td><td>4</td><td>2 727 140</td></tr>
+        <tr><td>stream21</td><td>004</td><td>341,5</td><td>94,1</td><td>1–19 ms</td><td>1</td><td>22 201</td></tr>
+        <tr><td>stream22</td><td>011</td><td>342,2</td><td>129,2</td><td>1–3 s</td><td>1</td><td>2 296</td></tr>
+        <tr><td>stream25</td><td>001-3</td><td>414,1</td><td>88,3</td><td>1–5 ms</td><td>1</td><td>302 955</td></tr>
+        <tr><td>stream27</td><td>001-47</td><td>415,0</td><td>151,9</td><td>0,4–9,2 ms</td><td>2</td><td>1 452 100</td></tr>
+        <tr><td>stream23</td><td>007</td><td>424,1</td><td>152,9</td><td>3 s</td><td>4</td><td>12 428</td></tr>
+        <tr><td>stream26</td><td>001-47</td><td>440,0</td><td>141,0</td><td>6 ms</td><td>4</td><td>376 309</td></tr>
+      </tbody>
+    </table>
+    <aside class="notes">
+      Slide di riserva: i dati dei sedici stream, dal capitolo 10.
+      Più del 60% dei grani sta in tre stream: stream24, stream9 e stream3.
+    </aside>
+  </section>
+  <!-- R3 · Riserva: Roads e lo YAML · cap. 2 -->
+  <section>
+    <h3>Riserva: i parametri della nuvola</h3>
+    <table class="cmp">
+      <thead><tr><th>parametro della nuvola (Roads 2001, p. 96)</th><th>in PGE</th></tr></thead>
+      <tbody>
+        <tr><td>istante d'inizio e durata della nuvola</td><td><code>onset</code>, <code>duration</code></td></tr>
+        <tr><td>durata del grano</td><td><code>grain.duration</code>, <code>duration_range</code></td></tr>
+        <tr><td>densità, variabile nel tempo</td><td><code>density</code> o <code>fill_factor</code>, <code>distribution</code></td></tr>
+        <tr><td>banda di frequenze</td><td><code>pitch</code> (trasposizione)</td></tr>
+        <tr><td>inviluppo d'ampiezza della nuvola</td><td><code>volume</code></td></tr>
+        <tr><td>forma d'onda nei grani</td><td><code>sample</code>, <code>pointer</code></td></tr>
+        <tr><td>dispersione spaziale</td><td><code>pan</code>, <code>pan_range</code></td></tr>
+      </tbody>
+    </table>
+    <aside class="notes">
+      Slide di riserva: la corrispondenza fra i sette parametri della nuvola di Roads e le chiavi dello YAML.
+    </aside>
+  </section>
+</div></div>
+<script src="vendor/reveal/dist/reveal.js"></script>
+<script src="vendor/reveal/plugin/highlight/highlight.js"></script>
+<script src="vendor/reveal/plugin/notes/notes.js"></script>
+<script src="vendor/reveal/plugin/zoom/zoom.js"></script>
+<script>
+  // Il player audio, una volta cliccato, tiene il focus e si prende le frecce
+  // (le usa per spostarsi nel file) prima che arrivino a reveal. Le intercetto
+  // in fase di cattura, prima del player, e le giro a reveal. Cambiando slide
+  // l'audio si ferma.
+  const nav = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down',
+                PageUp: 'prev', PageDown: 'next' };
+  window.addEventListener('keydown', e => {
+    if (!(e.target instanceof HTMLMediaElement) || !nav[e.key]) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    e.target.blur();
+    Reveal[nav[e.key]]();
+  }, true);
+  const audios = [...document.querySelectorAll('audio')];
+  Reveal.on('slidechanged', () => audios.forEach(a => a.pause()));
+  // Cursore su spettrogramma e MAP, sincronizzato con l'audio della slide.
+  // data-axes: riquadro dati nell'immagine, "sinistra destra alto basso" in %,
+  // misurato sui pixel; piu' riquadri separati da ';' seguono in ordine gli
+  // <audio> della slide (deviation: (a) e (b)). data-t="t0 t1": secondi coperti
+  // dall'asse, se l'immagine e' una pagina della MAP; di default l'intero file.
+  // Posizione in px sul riquadro reale dell'<img>: il tema la rimpicciolisce
+  // (max-width 95%) e la centra.
+  // data-page="s": piu' <img> sovrapposte, pagine della MAP da s secondi
+  // ciascuna, un riquadro data-axes per pagina e un solo <audio>; si vede solo
+  // la pagina che contiene il tempo corrente, come un video che segue il player.
+  document.querySelectorAll('.playhead').forEach(box => {
+    const imgs = box.querySelectorAll('img');
+    const tracks = box.closest('section').querySelectorAll('audio');
+    const [t0, t1] = (box.dataset.t || '').split(' ').map(Number);
+    const page = Number(box.dataset.page);
+    box.dataset.axes.split(';').forEach((axes, i) => {
+      const [x0, x1, y0, y1] = axes.trim().split(' ').map(Number);
+      const img = page ? imgs[i] : imgs[0];
+      const audio = page ? tracks[0] : tracks[i];
+      const cur = Object.assign(document.createElement('div'), { className: 'cursor' });
+      box.append(cur);
+      const draw = () => {
+        const a = page ? i * page : t0 || 0, b = page ? a + page : t1 || audio.duration || 1;
+        const f = (audio.currentTime - a) / (b - a);
+        const W = img.offsetWidth, H = img.offsetHeight;
+        const off = f < 0 || f > 1 || (page && f >= 1);
+        cur.style.display = off ? 'none' : '';
+        if (page) img.style.visibility = off ? 'hidden' : '';
+        cur.style.left = img.offsetLeft + W * (x0 + (x1 - x0) * f) / 100 + 'px';
+        cur.style.top = img.offsetTop + H * y0 / 100 + 'px';
+        cur.style.height = H * (y1 - y0) / 100 + 'px';
+        if (!audio.paused) requestAnimationFrame(draw);
+      };
+      ['play', 'seeked', 'loadedmetadata'].forEach(e => audio.addEventListener(e, draw));
+      img.addEventListener('load', draw);
+      Reveal.on('slidechanged', draw);
+    });
+  });
+  Reveal.initialize({ hash: true, width: 1280, height: 720, slideNumber: true,
+                      plugins: [RevealHighlight, RevealNotes, RevealZoom] });
+</script>
+</body>
+</html>
