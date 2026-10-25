@@ -8,7 +8,7 @@ Il disegno regge su due scelte che ritrovo in ogni capitolo. La prima è la sepa
 
 ## Che cosa ne è uscito
 
-Dal punto di vista musicale posso dichiarare solo ciò che è verificabile. Il primo esito è una raccolta di esempi (cartella `esempi/`), ciascuno dei quali isola un meccanismo e ne mostra l'effetto con la MAP: sono il materiale su cui è costruita la tesina. Il secondo è *mare-nostrum*, il brano con i lamenti e i pianti di bambini trasformati in suono di mare, che è incompiuto. Ne esistono uno schizzo di 675 secondi, con quindici stream e circa 9,3 milioni di grani, e un laboratorio di studi sui parametri, che finora ha una sessione di ascolto documentata. Non ho ancora un brano concluso da presentare, e nessuno ha usato lo strumento oltre a me. Non posso dunque dire se le scelte di PGE, in particolare la lettura psicoacustica dei parametri e la MAP come strumento di verifica, reggano fuori dal mio lavoro.
+Dal punto di vista musicale posso dichiarare solo ciò che è verificabile. Il primo esito è una raccolta di esempi (cartella `esempi/`), ciascuno dei quali isola un meccanismo e ne mostra l'effetto con la MAP: sono il materiale su cui è costruita la tesina. Il secondo è *mare-nostrum*, il brano con i lamenti e i pianti di bambini trasformati in suono di mare, di cui il capitolo 10 descrive la struttura: sedici stream, 581 secondi e circa 9,5 milioni di grani. Accanto al brano c'è un laboratorio di studi sui parametri, che finora ha una sessione di ascolto documentata. Nessuno ha usato lo strumento oltre a me. Non posso dunque dire se le scelte di PGE, in particolare la lettura psicoacustica dei parametri e la MAP come strumento di verifica, reggano fuori dal mio lavoro.
 
 ## Limiti
 
