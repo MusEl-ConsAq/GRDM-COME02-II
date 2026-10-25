@@ -415,5 +415,6 @@ esempi/**/*.aif
 # Build locale (Makefile)
 !Makefile
 /tesina.pdf
+/de_mattia_COME02-II-*.pdf
 /bibliography.yaml
 /styles/config_fonts.tex
