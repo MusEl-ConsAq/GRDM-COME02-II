@@ -115,6 +115,8 @@ g4m = decoder(np.radians(45), 4)
 assert np.allclose(g4m, [0.6036, 0.6036, -0.1036, -0.1036], atol=1e-4)
 g8 = decoder(0.0, 8)
 assert np.allclose(g8, [0.375, 0.3018, 0.125, -0.0518, -0.125, -0.0518, 0.125, 0.3018], atol=1e-4)
+g8m = decoder(np.radians(22.5), 8)                                    # a meta' fra due altoparlanti dell'anello da otto
+assert abs(g8m[0] - g8m[1]) < 1e-12 and g8m[0] == g8m.max() and abs(g8m.sum() - 1) < 1e-12
 assert np.allclose(decoder(0.0, 4, w=0.0, m=4.0), [1, 0, -1, 0])      # M e S soli, quattro altoparlanti: dietro in controfase
 print("4. decoder a n altoparlanti: ok")
 
